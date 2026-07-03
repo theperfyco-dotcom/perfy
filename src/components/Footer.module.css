@@ -1,0 +1,23 @@
+.footer { border-top: 1px solid var(--border); background: var(--bg); }
+
+.inner {
+  max-width: 1340px; margin: 0 auto; padding: 56px 32px 40px;
+  display: grid; grid-template-columns: 240px 1fr 1fr 1fr; gap: 48px;
+}
+
+.logo { font-family: var(--font-display); font-size: 22px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); margin-bottom: 8px; }
+.logo em { font-style: italic; font-weight: 400; }
+.tagline { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+.colTitle { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--subtle); margin-bottom: 14px; }
+
+.links { display: flex; flex-direction: column; gap: 9px; }
+.link { font-size: 13px; color: var(--muted); transition: color 0.15s; }
+.link:hover { color: var(--text); }
+
+.bottom { max-width: 1340px; margin: 0 auto; padding: 18px 32px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 11px; color: var(--subtle); }
+
+@media (max-width: 768px) {
+  .inner { grid-template-columns: 1fr; padding: 40px 16px 32px; }
+  .bottom { padding: 16px; flex-direction: column; gap: 4px; }
+}

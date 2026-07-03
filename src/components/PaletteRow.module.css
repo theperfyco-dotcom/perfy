@@ -1,0 +1,75 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--bg);
+  padding: 14px 20px;
+  transition: background 0.12s;
+  color: inherit;
+}
+.row:hover { background: var(--bg-warm); }
+
+.pos { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: var(--subtle); width: 18px; flex-shrink: 0; text-align: right; }
+
+.swatches {
+  display: flex;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex: 1;
+  gap: 1.5px;
+}
+
+.swatch {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.swatchLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,0.45);
+  opacity: 0;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.row:hover .swatchLabel { opacity: 1; }
+
+.info {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 160px;
+}
+
+.fragName { font-size: 14px; font-weight: 600; color: var(--text); }
+.fragBrand { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+.scoreRow { display: flex; align-items: baseline; gap: 6px; justify-content: flex-end; margin-top: 4px; }
+.score { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--text); }
+.count { font-size: 11px; color: var(--subtle); }
+
+.actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.actionBtn {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-warm);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--subtle); transition: all 0.12s;
+}
+.actionBtn:hover { color: var(--text); border-color: var(--border-dark); background: var(--bg-warm2); }
+
+@media (max-width: 768px) {
+  .info { min-width: 100px; }
+  .actions { display: none; }
+}
