@@ -180,3 +180,9 @@ export async function getAllFragranceSlugs(): Promise<string[]> {
   const { data } = await supabase.from('fragrances').select('slug')
   return (data ?? []).map(f => f.slug)
 }
+
+export async function getAllBrandSlugs(): Promise<string[]> {
+  const supabase = await createClient()
+  const { data } = await supabase.from('brands').select('slug')
+  return (data ?? []).map(b => b.slug)
+}
