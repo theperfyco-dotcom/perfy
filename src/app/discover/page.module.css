@@ -1,0 +1,104 @@
+/* ── Layout ───────────────────────────────── */
+.main { min-height: 100vh; }
+
+.header {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-warm);
+  padding: 48px 32px 32px;
+}
+.headerInner { max-width: 1340px; margin: 0 auto; }
+.title { font-family: var(--font-display); font-size: clamp(28px, 4vw, 42px); font-weight: 400; color: var(--text); letter-spacing: -0.3px; margin-bottom: 8px; }
+.title em { font-style: italic; color: var(--muted); }
+.sub { font-size: 14px; color: var(--muted); }
+
+.layout {
+  max-width: 1340px; margin: 0 auto;
+  display: grid; grid-template-columns: 220px 1fr;
+  gap: 48px; padding: 40px 32px 80px; align-items: start;
+}
+
+/* ── Sidebar ──────────────────────────────── */
+.sidebar { position: sticky; top: 80px; }
+
+.searchForm { margin-bottom: 28px; }
+.searchWrap { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); padding: 0 12px; }
+.searchIcon { color: var(--subtle); flex-shrink: 0; }
+.searchInput { border: none; background: none; outline: none; font-size: 13px; color: var(--text); padding: 10px 0; width: 100%; }
+.searchInput::placeholder { color: var(--subtle); }
+
+.filterGroup { margin-bottom: 24px; }
+.filterLabel { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--subtle); margin-bottom: 10px; }
+.filterOptions { display: flex; flex-direction: column; gap: 2px; }
+.filterOpt {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 500; color: var(--muted);
+  padding: 6px 8px; border-radius: var(--radius-sm);
+  transition: color .12s, background .12s;
+}
+.filterOpt:hover { color: var(--text); background: var(--bg-warm); }
+.filterOptActive { color: var(--text); background: var(--bg-warm2); font-weight: 600; }
+
+.accordDot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+.resetLink { display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; transition: color .12s; }
+.resetLink:hover { color: var(--text); }
+
+/* ── Content ──────────────────────────────── */
+.content {}
+
+.activePills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+.activePill {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  background: var(--bg-warm2); border: 1px solid var(--border-dark);
+  border-radius: 2px; padding: 4px 10px;
+  transition: background .12s;
+}
+.activePill:hover { background: var(--border); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.empty { padding: 60px 0; text-align: center; color: var(--muted); font-size: 14px; }
+.empty p { margin-bottom: 12px; }
+
+/* ── Pagination ───────────────────────────── */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding-top: 40px; }
+
+.pageBtn {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  color: var(--muted); border: 1px solid var(--border);
+  background: var(--bg); transition: all .12s;
+}
+.pageBtn:hover { color: var(--text); border-color: var(--border-dark); background: var(--bg-warm); }
+.pageBtnDisabled { opacity: 0.35; pointer-events: none; }
+
+.pageNums { display: flex; gap: 4px; }
+.pageNum {
+  display: flex; align-items: center; justify-content: center;
+  min-width: 36px; height: 36px; padding: 0 6px;
+  font-size: 13px; font-weight: 500; color: var(--muted);
+  border-radius: var(--radius-sm); border: 1px solid transparent;
+  transition: all .12s;
+}
+.pageNum:hover { color: var(--text); background: var(--bg-warm); }
+.pageNumActive { color: var(--text); border-color: var(--border-dark); background: var(--bg-warm); font-weight: 700; }
+
+/* ── Responsive ───────────────────────────── */
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 24px; }
+  .sidebar { position: static; }
+  .filterOptions { flex-direction: row; flex-wrap: wrap; }
+  .filterOpt { padding: 5px 10px; border: 1px solid var(--border); border-radius: 20px; }
+  .filterOptActive { border-color: var(--border-dark); }
+}
+@media (max-width: 640px) {
+  .header { padding: 32px 16px 24px; }
+  .layout { padding: 24px 16px 60px; }
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}

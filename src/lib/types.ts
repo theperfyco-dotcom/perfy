@@ -34,6 +34,11 @@ export interface Fragrance {
   concentration?: string
   gender?: 'masculine' | 'feminine' | 'unisex'
   image_url?: string
+  perfumer?: string
+  fw_classification?: string
+  concepts?: string[]
+  wikiparfum_slug?: string
+  origin?: string
   accords?: Accord[]
   top_notes?: Note[]
   heart_notes?: Note[]

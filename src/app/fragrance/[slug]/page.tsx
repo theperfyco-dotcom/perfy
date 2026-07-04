@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import {
   Tree, Star, Heart, ListPlus, Export, ShoppingBag,
-  Clock, Wind, Sun, Drop,
-  Flower, CaretRight, ArrowRight,
+  Clock, Wind, Sun, Drop, Flower, CaretRight, ArrowRight,
 } from '@phosphor-icons/react/dist/ssr'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
@@ -20,9 +20,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const f = await getFragranceBySlug(slug)
   if (!f) return {}
+
+  const noteSummary = [
+    ...(f.top_notes ?? []), ...(f.heart_notes ?? []), ...(f.base_notes ?? [])
+  ].slice(0, 5).map(n => n.name).join(', ')
+
+  const desc = [
+    `${f.name} by ${f.brand.name}`,
+    f.concentration && f.year ? `${f.concentration} (${f.year})` : null,
+    f.avg_score ? `Community rating: ${f.avg_score}/10 from ${f.rating_count?.toLocaleString()} ratings` : null,
+    noteSummary ? `Notes: ${noteSummary}` : null,
+    f.perfumer ? `Created by perfumer ${f.perfumer}` : null,
+  ].filter(Boolean).join(' · ')
+
   return {
-    title: `${f.name} by ${f.brand.name}`,
-    description: `Community ratings for ${f.name}${f.avg_score ? `: ${f.avg_score}/10` : ''} — longevity, sillage, scent profile and best price.`,
+    title: `${f.name} by ${f.brand.name} — Fragrance Reviews & Ratings`,
+    description: desc,
+    openGraph: {
+      title: `${f.name} by ${f.brand.name}`,
+      description: desc,
+      images: f.image_url ? [{ url: f.image_url }] : [],
+    },
   }
 }
 
@@ -31,13 +49,45 @@ export default async function FragrancePage({ params }: Props) {
   const fragrance = await getFragranceBySlug(slug)
   if (!fragrance) notFound()
 
-  const dupes: Array<{ id: string; match_pct: number; dupe_name: string; dupe_brand: string; price: number; saves: number; vote_count: number }> = []
   const longevityDist = fragrance.longevity_dist ?? {}
-  const sillage_dist  = fragrance.sillage_dist  ?? {}
+  const sillageDist   = fragrance.sillage_dist  ?? {}
+  const dupes: Array<{ id: string; match_pct: number; dupe_name: string; dupe_brand: string; price: number; saves: number; vote_count: number }> = []
+
+  // All notes flat (Wikiparfum-sourced have no position)
+  const allNotes = [
+    ...(fragrance.top_notes ?? []),
+    ...(fragrance.heart_notes ?? []),
+    ...(fragrance.base_notes ?? []),
+  ]
+
+  // JSON-LD structured data for SEO + LLM
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: fragrance.name,
+    brand: { '@type': 'Brand', name: fragrance.brand.name },
+    description: fragrance.description ?? undefined,
+    image: fragrance.image_url ?? undefined,
+    ...(fragrance.avg_score && fragrance.rating_count ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: fragrance.avg_score,
+        bestRating: 10,
+        worstRating: 1,
+        ratingCount: fragrance.rating_count,
+      },
+    } : {}),
+  }
 
   return (
     <>
       <Nav />
+
+      {/* JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
       {/* Breadcrumb */}
       <div className={styles.breadcrumbBar}>
@@ -50,77 +100,137 @@ export default async function FragrancePage({ params }: Props) {
         </nav>
       </div>
 
-      <main>
+      <main itemScope itemType="https://schema.org/Product">
 
-        {/* ── Hero ──────────────────────────────────── */}
+        {/* ── Hero — 2-col: image + info ──────────────── */}
         <section className={styles.hero} aria-labelledby="frag-name">
 
-          {/* Image */}
+          {/* Image column */}
           <div className={styles.imgWrap}>
-            <div className={styles.img} role="img" aria-label={`${fragrance.name} bottle`}>
-              <Tree weight="fill" size={100} className={styles.imgIcon} aria-hidden="true" />
+            <div className={styles.img} aria-label={`${fragrance.name} bottle`}>
+              {fragrance.image_url ? (
+                <Image
+                  src={fragrance.image_url}
+                  alt={`${fragrance.name} by ${fragrance.brand.name}`}
+                  fill
+                  sizes="(max-width: 768px) 90vw, 380px"
+                  style={{ objectFit: 'contain', padding: '16px' }}
+                  priority
+                  itemProp="image"
+                />
+              ) : (
+                <Tree weight="fill" size={100} className={styles.imgIcon} aria-hidden="true" />
+              )}
             </div>
+
+            {/* Accord strip under image — scent fingerprint */}
+            {fragrance.accords && fragrance.accords.length > 0 && (
+              <AccordStrip accords={fragrance.accords} height={8} gap={0} />
+            )}
           </div>
 
-          {/* Info */}
+          {/* Info column */}
           <div className={styles.info}>
-            <Link href={`/brand/${fragrance.brand.slug}`} className={styles.brandLink}>
+            <Link href={`/brand/${fragrance.brand.slug}`} className={styles.brandLink} itemProp="brand">
               {fragrance.brand.name}
             </Link>
-            <h1 className={styles.name} id="frag-name">{fragrance.name}</h1>
+            <h1 className={styles.name} id="frag-name" itemProp="name">{fragrance.name}</h1>
             <p className={styles.variant}>
-              {fragrance.concentration} · {fragrance.gender === 'masculine' ? 'For Him' : fragrance.gender === 'feminine' ? 'For Her' : 'Unisex'} · {fragrance.year}
+              {[
+                fragrance.concentration,
+                fragrance.gender === 'masculine' ? 'For Him' : fragrance.gender === 'feminine' ? 'For Her' : 'Unisex',
+                fragrance.year?.toString(),
+                fragrance.origin,
+              ].filter(Boolean).join(' · ')}
             </p>
 
-            {/* Score */}
-            <div className={styles.scoreRow}>
-              <div>
-                <span className={styles.scoreNum}>{fragrance.avg_score?.toFixed(1)}</span>
-                <span className={styles.scoreDenom}>/10</span>
-                <div className={styles.scoreCount}>{fragrance.rating_count?.toLocaleString()} community ratings</div>
-              </div>
-              <div className={styles.scoreDivider} aria-hidden="true" />
-              <div className={styles.statBadges}>
-                {[
-                  { label: 'Longevity', val: 82 },
-                  { label: 'Sillage',   val: 74 },
-                  { label: 'Value',     val: 61 },
-                ].map(({ label, val }) => (
-                  <div key={label} className={styles.statBadge}>
-                    <span className={styles.statLabel}>{label}</span>
-                    <div className={styles.statTrack}><div className={styles.statFill} style={{ width: `${val}%` }} /></div>
-                    <span className={styles.statVal}>{(val / 10).toFixed(1)}</span>
+            {/* ── Community score — the hero ── */}
+            <div className={styles.scoreBlock} itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
+              {fragrance.avg_score ? (
+                <>
+                  <div className={styles.scoreHero}>
+                    <span className={styles.scoreNum} itemProp="ratingValue">{fragrance.avg_score.toFixed(1)}</span>
+                    <span className={styles.scoreMax}>/10</span>
                   </div>
-                ))}
-              </div>
+                  <p className={styles.scoreContext}>
+                    <meta itemProp="bestRating" content="10" />
+                    <meta itemProp="worstRating" content="1" />
+                    <meta itemProp="ratingCount" content={String(fragrance.rating_count ?? 0)} />
+                    Based on <strong>{fragrance.rating_count?.toLocaleString()}</strong> community ratings
+                  </p>
+                  <div className={styles.statBars}>
+                    {[
+                      { label: 'Longevity', val: 82 },
+                      { label: 'Sillage',   val: 74 },
+                      { label: 'Value',     val: 61 },
+                    ].map(({ label, val }) => (
+                      <div key={label} className={styles.statBar}>
+                        <span className={styles.statLabel}>{label}</span>
+                        <div className={styles.statTrack}><div className={styles.statFill} style={{ width: `${val}%` }} /></div>
+                        <span className={styles.statVal}>{(val / 10).toFixed(1)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className={styles.noScore}>
+                  <p>No community ratings yet</p>
+                  <p className={styles.noScoreSub}>Be the first to rate this fragrance</p>
+                </div>
+              )}
             </div>
 
-            {/* Gender */}
-            <div className={styles.genderRow}>
-              <span className={`${styles.genderPill} ${styles.genderActive}`}>Men's {fragrance.gender_dist?.masculine}%</span>
-              <div className={styles.genderBar} aria-hidden="true">
-                <div style={{ height: '100%', width: `${fragrance.gender_dist?.masculine ?? 70}%`, background: 'var(--acc-fresh)', borderRadius: 2 }} />
-              </div>
-              <span className={styles.genderPill}>Women's {fragrance.gender_dist?.feminine}%</span>
-            </div>
-
-            {/* Accords */}
+            {/* ── Accords ── */}
             {fragrance.accords && fragrance.accords.length > 0 && (
-              <>
-                <div className={styles.sectionLabel}>Scent profile</div>
-                <AccordStrip accords={fragrance.accords} height={48} showLabels />
+              <div className={styles.accordSection}>
+                <h2 className={styles.sectionLabel}>Scent profile</h2>
+                <AccordStrip accords={fragrance.accords} height={40} showLabels />
                 <div className={styles.accordLegend}>
                   {fragrance.accords.map(a => (
                     <div key={a.name} className={styles.accordPill}>
                       <div className={styles.accDot} style={{ background: `var(--acc-${a.name.toLowerCase()}, #C0B8B0)` }} />
-                      {a.name} {a.percentage}%
+                      {a.name} <span className={styles.accPct}>{a.percentage}%</span>
                     </div>
                   ))}
                 </div>
-              </>
+              </div>
             )}
 
-            {/* Actions */}
+            {/* ── Metadata grid ── */}
+            {(fragrance.fw_classification || fragrance.perfumer || fragrance.origin || (fragrance.concepts && fragrance.concepts.length > 0)) && (
+              <div className={styles.metaGrid}>
+                {fragrance.fw_classification && (
+                  <div className={styles.metaItem}>
+                    <dt className={styles.metaLabel}>Classification</dt>
+                    <dd className={styles.metaValue}>{fragrance.fw_classification}</dd>
+                  </div>
+                )}
+                {fragrance.perfumer && (
+                  <div className={styles.metaItem}>
+                    <dt className={styles.metaLabel}>Perfumer</dt>
+                    <dd className={styles.metaValue}>{fragrance.perfumer}</dd>
+                  </div>
+                )}
+                {fragrance.origin && (
+                  <div className={styles.metaItem}>
+                    <dt className={styles.metaLabel}>Origin</dt>
+                    <dd className={styles.metaValue}>{fragrance.origin}</dd>
+                  </div>
+                )}
+                {fragrance.concepts && fragrance.concepts.length > 0 && (
+                  <div className={`${styles.metaItem} ${styles.metaFull}`}>
+                    <dt className={styles.metaLabel}>Best for</dt>
+                    <dd className={styles.conceptPills}>
+                      {fragrance.concepts.slice(0, 8).map(c => (
+                        <span key={c} className={styles.conceptPill}>{c}</span>
+                      ))}
+                    </dd>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Actions ── */}
             <div className={styles.actions}>
               <button className="btn-primary"><Star weight="bold" size={14} /> Rate this</button>
               <button className="btn-secondary"><Heart weight="bold" size={14} /> Wishlist</button>
@@ -129,25 +239,56 @@ export default async function FragrancePage({ params }: Props) {
             </div>
           </div>
 
-          {/* Buy panel */}
-          <BuyPanel
-            prices={fragrance.prices ?? []}
-            fragranceName={fragrance.name}
-            concentration={fragrance.concentration}
-          />
-
         </section>
+
+        {/* ── Notes pyramid ─────────────────────────── */}
+        {(fragrance.top_notes?.length || fragrance.heart_notes?.length || fragrance.base_notes?.length || allNotes.length > 0) && (
+          <section className={styles.notesSection} aria-labelledby="notes-heading">
+            <h2 className={styles.sectionTitle} id="notes-heading">Fragrance <em>notes</em></h2>
+            <div className={styles.pyramid}>
+              {fragrance.top_notes?.length ? (
+                [
+                  { tier: 'Top notes',   icon: <Drop weight="fill" size={12} />,   notes: fragrance.top_notes },
+                  { tier: 'Heart notes', icon: <Flower weight="fill" size={12} />, notes: fragrance.heart_notes },
+                  { tier: 'Base notes',  icon: <Tree weight="fill" size={12} />,   notes: fragrance.base_notes },
+                ].filter(t => t.notes?.length).map(({ tier, icon, notes }) => (
+                  <div key={tier} className={styles.pyramidTier}>
+                    <div className={styles.pyramidTierLabel}>{icon} {tier}</div>
+                    <div className={styles.pyramidNotes}>
+                      {notes?.map(n => (
+                        <Link key={n.id} href={`/note/${n.name.toLowerCase()}`} className={styles.pyramidNote}>
+                          {n.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                // Flat notes (from Wikiparfum — no tier data)
+                <div className={styles.pyramidTier}>
+                  <div className={styles.pyramidTierLabel}><Tree weight="fill" size={12} /> Ingredients</div>
+                  <div className={styles.pyramidNotes}>
+                    {allNotes.map(n => (
+                      <Link key={n.id} href={`/note/${n.name.toLowerCase()}`} className={styles.pyramidNote}>
+                        {n.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* ── Community ratings ─────────────────────── */}
         <section className={styles.communitySection} aria-labelledby="ratings-heading">
           <h2 className={styles.sectionTitle} id="ratings-heading">Community <em>ratings</em></h2>
-
           <div className={styles.ratingsGrid}>
             {[
               { title: 'Longevity', icon: <Clock weight="fill" size={14} />, data: longevityDist,
                 order: ['24hrs+', '12-24hrs', '8-12hrs', '4-8hrs', 'under-4hrs'],
-                labels: ['24 hrs+', '12–24 hrs', '8–12 hrs', '4–8 hrs', 'Under 4hrs'] },
-              { title: 'Sillage',   icon: <Wind weight="fill" size={14} />,  data: sillage_dist,
+                labels: ['24 hrs+', '12–24 hrs', '8–12 hrs', '4–8 hrs', 'Under 4 hrs'] },
+              { title: 'Sillage', icon: <Wind weight="fill" size={14} />, data: sillageDist,
                 order: ['enormous', 'strong', 'moderate', 'soft', 'intimate'],
                 labels: ['Enormous', 'Strong', 'Moderate', 'Soft', 'Intimate'] },
               { title: 'Best season', icon: <Sun weight="fill" size={14} />, data: { Spring: 32, Summer: 24, Autumn: 28, Winter: 16 },
@@ -172,38 +313,27 @@ export default async function FragrancePage({ params }: Props) {
             ))}
           </div>
 
-          {/* Recommend bar */}
-          <div className={styles.recommendBar} role="region" aria-label="Recommendation summary">
-            <div className={styles.recommendPct}>{fragrance.recommend_pct}%</div>
-            <div>
-              <div className={styles.recommendLabel}>recommend {fragrance.name}</div>
-              <div className={styles.recommendSub}>Based on {fragrance.rating_count?.toLocaleString()} community ratings</div>
+          {fragrance.recommend_pct != null && (
+            <div className={styles.recommendBar} role="region" aria-label="Recommendation summary">
+              <div className={styles.recommendPct}>{fragrance.recommend_pct}%</div>
+              <div>
+                <div className={styles.recommendLabel}>would recommend {fragrance.name}</div>
+                <div className={styles.recommendSub}>Based on {fragrance.rating_count?.toLocaleString()} community ratings</div>
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
-        {/* ── Notes pyramid ─────────────────────────── */}
-        {(fragrance.top_notes || fragrance.heart_notes || fragrance.base_notes) && (
-          <section className={styles.notesSection} aria-labelledby="notes-heading">
-            <h2 className={styles.sectionTitle} id="notes-heading">Fragrance <em>notes</em></h2>
-            <div className={styles.pyramid}>
-              {[
-                { tier: 'Top notes',   icon: <Drop weight="fill" size={12} />,   notes: fragrance.top_notes },
-                { tier: 'Heart notes', icon: <Flower weight="fill" size={12} />, notes: fragrance.heart_notes },
-                { tier: 'Base notes',  icon: <Tree weight="fill" size={12} />,   notes: fragrance.base_notes },
-              ].filter(t => t.notes?.length).map(({ tier, icon, notes }) => (
-                <div key={tier} className={styles.pyramidTier}>
-                  <div className={styles.pyramidTierLabel}>{icon} {tier}</div>
-                  <div className={styles.pyramidNotes}>
-                    {notes?.map(n => (
-                      <Link key={n.id} href={`/note/${n.name.toLowerCase()}`} className={styles.pyramidNote}>
-                        {n.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* ── Where to buy — secondary ───────────────── */}
+        {(fragrance.prices && fragrance.prices.length > 0) && (
+          <section className={styles.buySection} id="buy" aria-labelledby="buy-heading">
+            <h2 className={styles.sectionTitle} id="buy-heading">Where to <em>buy</em></h2>
+            <p className={styles.buySub}>Prices tracked across authorised UK retailers</p>
+            <BuyPanel
+              prices={fragrance.prices}
+              fragranceName={fragrance.name}
+              concentration={fragrance.concentration}
+            />
           </section>
         )}
 
@@ -235,7 +365,7 @@ export default async function FragrancePage({ params }: Props) {
           </section>
         )}
 
-        {/* ── Vote card ─────────────────────────────── */}
+        {/* ── Rate this ─────────────────────────────── */}
         <section className={styles.voteSection} aria-labelledby="vote-heading">
           <h2 className={styles.sectionTitle} id="vote-heading">How does it <em>wear</em> for you?</h2>
           <VoteCard fragranceId={fragrance.id} fragranceName={fragrance.name} />

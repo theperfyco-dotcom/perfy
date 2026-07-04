@@ -19,9 +19,14 @@ create table fragrances (
   year          integer,
   concentration text,          -- EDP, EDT, Parfum, EDC
   gender        text check (gender in ('masculine','feminine','unisex')),
-  image_url     text,
-  created_at    timestamptz default now(),
-  updated_at    timestamptz default now()
+  image_url         text,
+  perfumer          text,
+  fw_classification text,
+  concepts          text[],
+  wikiparfum_slug   text,
+  origin            text,
+  created_at        timestamptz default now(),
+  updated_at        timestamptz default now()
 );
 
 create index idx_fragrances_brand on fragrances(brand_id);
@@ -37,7 +42,7 @@ create table notes (
 create table fragrance_notes (
   fragrance_id uuid references fragrances(id) on delete cascade,
   note_id      uuid references notes(id) on delete cascade,
-  position     text not null check (position in ('top','heart','base')),
+  position     text check (position IS NULL OR position IN ('top','heart','base')),
   primary key (fragrance_id, note_id)
 );
 
@@ -187,6 +192,7 @@ alter table list_items        enable row level security;
 
 -- Public reads
 create policy "Public profiles are viewable"   on profiles  for select using (true);
+create policy "Public brands are viewable"     on brands    for select using (true);
 create policy "Public fragrances are viewable" on fragrances for select using (true);
 create policy "Public ratings are viewable"    on ratings   for select using (true);
 create policy "Public lists are viewable"      on lists     for select using (is_public = true);

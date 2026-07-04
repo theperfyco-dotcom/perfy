@@ -30,7 +30,7 @@ export default async function HomePage() {
               scent
             </h1>
             <p className={styles.heroSub}>
-              Honest community ratings on longevity, sillage and scent profile — and where to buy it for less.
+              In-depth community ratings on longevity, sillage, and scent profile. The fragrance database trusted by enthusiasts.
             </p>
 
             <div className={styles.heroSearch} role="search">

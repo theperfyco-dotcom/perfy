@@ -13,6 +13,8 @@ type DbFrag = {
   id: string; slug: string; name: string
   concentration: string | null; gender: string | null
   year: number | null; description: string | null; image_url: string | null
+  perfumer: string | null; fw_classification: string | null
+  concepts: string[] | null; origin: string | null; wikiparfum_slug: string | null
   brands: { id: string; slug: string; name: string; country: string | null } | null
   fragrance_accords: DbAccord[]
   fragrance_notes?: DbNote[]
@@ -40,7 +42,12 @@ function mapFragrance(row: DbFrag, stats?: DbStats): Fragrance {
     year:          row.year          ?? undefined,
     concentration: row.concentration ?? undefined,
     gender:        (row.gender as Fragrance['gender']) ?? undefined,
-    image_url:     row.image_url     ?? undefined,
+    image_url:        row.image_url        ?? undefined,
+    perfumer:         row.perfumer         ?? undefined,
+    fw_classification: row.fw_classification ?? undefined,
+    concepts:         row.concepts         ?? undefined,
+    origin:           row.origin           ?? undefined,
+    wikiparfum_slug:  row.wikiparfum_slug  ?? undefined,
     accords: row.fragrance_accords.map(a => ({
       name:       a.accord_name,
       percentage: a.percentage,
@@ -100,6 +107,7 @@ export async function getFragranceBySlug(slug: string): Promise<Fragrance | null
     .from('fragrances')
     .select(`
       id, slug, name, concentration, gender, year, description, image_url,
+      perfumer, fw_classification, concepts, origin, wikiparfum_slug,
       brands(id, slug, name, country),
       fragrance_accords(accord_name, percentage, color_hex),
       fragrance_notes(position, notes(id, name, family)),
@@ -112,6 +120,59 @@ export async function getFragranceBySlug(slug: string): Promise<Fragrance | null
 
   const statsMap = await getStats([data.id])
   return mapFragrance(data as unknown as DbFrag, statsMap.get(data.id))
+}
+
+export async function getFragrances(opts: {
+  gender?: string
+  accord?: string
+  search?: string
+  sort?: string
+  page?: number
+  limit?: number
+} = {}): Promise<{ fragrances: Fragrance[]; total: number }> {
+  const supabase = await createClient()
+  const { gender, accord, search, sort = 'name', page = 1, limit = 48 } = opts
+  const from = (page - 1) * limit
+
+  // Count query
+  let countQ = supabase.from('fragrances').select('id', { count: 'exact', head: true })
+  if (gender) countQ = countQ.eq('gender', gender)
+  if (search) countQ = countQ.ilike('name', `%${search}%`)
+
+  // Data query
+  let dataQ = supabase
+    .from('fragrances')
+    .select(`
+      id, slug, name, concentration, gender, year, description, image_url,
+      perfumer, fw_classification, concepts, origin, wikiparfum_slug,
+      brands(id, slug, name, country),
+      fragrance_accords(accord_name, percentage, color_hex)
+    `)
+    .range(from, from + limit - 1)
+
+  if (gender) dataQ = dataQ.eq('gender', gender)
+  if (search) dataQ = dataQ.ilike('name', `%${search}%`)
+  if (sort === 'newest') dataQ = dataQ.order('year', { ascending: false, nullsFirst: false }).order('name')
+  else dataQ = dataQ.order('name')
+
+  // Accord filter: post-filter in JS (Supabase doesn't support nested filter easily)
+  const [countRes, dataRes] = await Promise.all([countQ, dataQ])
+  if (dataRes.error) { console.error('getFragrances:', dataRes.error.message); return { fragrances: [], total: 0 } }
+
+  let rows = (dataRes.data ?? []) as unknown as DbFrag[]
+
+  if (accord) {
+    const needle = accord.toLowerCase()
+    rows = rows.filter(f =>
+      (f.fragrance_accords ?? []).some(a => a.accord_name.toLowerCase().includes(needle))
+    )
+  }
+
+  const statsMap = await getStats(rows.map(f => f.id))
+  return {
+    fragrances: rows.map(f => mapFragrance(f, statsMap.get(f.id))),
+    total: countRes.count ?? 0,
+  }
 }
 
 export async function getAllFragranceSlugs(): Promise<string[]> {

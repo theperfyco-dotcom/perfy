@@ -6,6 +6,7 @@
 }
 .card:hover { background: var(--bg-warm); }
 
+/* Image */
 .imgLink { display: contents; }
 
 .img {
@@ -16,54 +17,79 @@
   position: relative;
   overflow: hidden;
 }
-.imgIcon { opacity: 0.15; color: var(--text); }
+.imgIcon { opacity: 0.13; color: var(--text); }
+.imgPhoto { object-fit: contain; padding: 8px; }
 
 .rank {
   position: absolute;
-  top: 12px; left: 12px;
+  top: 10px; left: 10px;
   font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--bg);
-  background: var(--black); padding: 3px 8px; border-radius: var(--radius-sm);
+  background: var(--black); padding: 3px 7px; border-radius: var(--radius-sm);
 }
 
 .wishBtn {
   position: absolute;
-  top: 10px; right: 10px;
-  width: 30px; height: 30px; border-radius: 50%;
-  background: rgba(255,255,255,0.90);
+  top: 8px; right: 8px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.92);
   display: flex; align-items: center; justify-content: center;
-  color: var(--subtle); font-size: 14px;
+  color: var(--subtle); font-size: 13px;
   border: 1px solid var(--border);
   opacity: 0; transition: opacity 0.15s, color 0.15s;
 }
 .card:hover .wishBtn { opacity: 1; }
 .wishBtn:hover { color: #C24C4C; }
 
-.body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+/* Body */
+.body { padding: 14px 16px 10px; flex: 1; display: flex; flex-direction: column; }
 
-.brand { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--subtle); margin-bottom: 4px; }
+.brand {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.10em;
+  text-transform: uppercase; color: var(--subtle); margin-bottom: 4px;
+}
 
-.name { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.3; margin-bottom: 10px; }
+.name {
+  font-size: 14px; font-weight: 500; color: var(--text);
+  line-height: 1.3; margin-bottom: 10px;
+}
 .name a { color: inherit; }
 .name a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-.scoreRow { display: flex; align-items: baseline; gap: 6px; margin-bottom: 12px; }
-.score { font-family: var(--font-display); font-size: 24px; font-weight: 600; color: var(--text); }
-.scoreMeta { font-size: 11px; color: var(--subtle); }
-
-.accordLabels { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 14px; }
-.accordLabel { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: var(--radius-sm); color: var(--muted); background: var(--bg-warm); border: 1px solid var(--border); }
-
-.footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border); }
-
-.price { font-size: 15px; font-weight: 600; color: var(--text); }
-.priceSub { font-size: 11px; color: var(--subtle); }
-
-.buyBtn {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--bg); background: var(--black);
-  border-radius: var(--radius-sm); padding: 7px 14px;
-  transition: background 0.15s;
+/* Score — community rating is the hero */
+.scoreRow {
+  display: flex; align-items: baseline; gap: 5px;
+  margin-bottom: 10px;
 }
-.buyBtn:hover { background: #2C2926; }
+.scoreBadge {
+  font-family: var(--font-display); font-size: 22px; font-weight: 600;
+  color: var(--text); line-height: 1;
+}
+.scoreMeta { display: flex; flex-direction: column; }
+.scoreLabel { font-size: 11px; color: var(--subtle); line-height: 1.2; }
+.ratingCount { font-size: 10px; color: var(--subtle); white-space: nowrap; }
+
+.noScore {
+  font-size: 11px; color: var(--subtle); margin-bottom: 10px; font-style: italic;
+}
+
+/* Accord chips */
+.accordLabels { display: flex; gap: 4px; flex-wrap: wrap; margin-top: auto; padding-top: 8px; }
+.accordLabel {
+  font-size: 10px; font-weight: 500; padding: 2px 6px;
+  border-radius: var(--radius-sm); color: var(--muted);
+  background: var(--bg-warm); border: 1px solid var(--border);
+}
+
+/* Footer — metadata only, no buy CTA */
+.footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--border);
+}
+.footMeta { font-size: 11px; color: var(--subtle); }
+.detailLink {
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  transition: color 0.12s;
+}
+.detailLink:hover { color: var(--text); }
