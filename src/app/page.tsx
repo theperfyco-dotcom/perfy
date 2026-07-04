@@ -4,12 +4,13 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import FragranceCard from '@/components/FragranceCard'
 import PaletteRow from '@/components/PaletteRow'
-import { SEED_FRAGRANCES } from '@/lib/seed-data'
+import { getTopFragrances } from '@/lib/db'
 import styles from './page.module.css'
 
-export default function HomePage() {
-  const trending = SEED_FRAGRANCES.slice(0, 4)
-  const palette  = SEED_FRAGRANCES.slice(0, 6)
+export default async function HomePage() {
+  const fragrances = await getTopFragrances(20)
+  const trending   = fragrances.slice(0, 4)
+  const palette    = fragrances.slice(0, 6)
 
   return (
     <>
@@ -55,7 +56,7 @@ export default function HomePage() {
 
           <div className={styles.heroVisual}>
             <div className={styles.heroVisualLabel}>Top rated this week</div>
-            {SEED_FRAGRANCES.slice(0, 5).map(f => {
+            {fragrances.slice(0, 5).map(f => {
               const total = (f.accords ?? []).reduce((s, a) => s + a.percentage, 0)
               return (
                 <Link key={f.id} href={`/fragrance/${f.slug}`} className={styles.heroPaletteRow}>

@@ -9,27 +9,27 @@ import {
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import AccordStrip from '@/components/AccordStrip'
-import { SEED_FRAGRANCES, SEED_DUPES } from '@/lib/seed-data'
+import { getFragranceBySlug } from '@/lib/db'
 import styles from './page.module.css'
 
 interface Props { params: Promise<{ slug: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const f = SEED_FRAGRANCES.find(x => x.slug === slug)
+  const f = await getFragranceBySlug(slug)
   if (!f) return {}
   return {
     title: `${f.name} by ${f.brand.name}`,
-    description: `Community ratings for ${f.name}: ${f.avg_score}/10 from ${f.rating_count?.toLocaleString()} members. Longevity, sillage, scent profile and best price.`,
+    description: `Community ratings for ${f.name}${f.avg_score ? `: ${f.avg_score}/10` : ''} — longevity, sillage, scent profile and best price.`,
   }
 }
 
 export default async function FragrancePage({ params }: Props) {
   const { slug } = await params
-  const fragrance = SEED_FRAGRANCES.find(f => f.slug === slug)
+  const fragrance = await getFragranceBySlug(slug)
   if (!fragrance) notFound()
 
-  const dupes = SEED_DUPES.filter(d => d.original_slug === slug)
+  const dupes: Array<{ id: string; match_pct: number; dupe_name: string; dupe_brand: string; price: number; saves: number; vote_count: number }> = []
   const lowestPrice = fragrance.prices?.sort((a, b) => a.price - b.price)[0]
 
   const longevityDist = fragrance.longevity_dist ?? {}
