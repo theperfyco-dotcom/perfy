@@ -4,12 +4,13 @@ import type { Metadata } from 'next'
 import {
   Tree, Star, Heart, ListPlus, Export, ShoppingBag,
   Clock, Wind, Sun, Drop,
-  Flower, Storefront, Bell, CaretRight, ArrowRight,
+  Flower, CaretRight, ArrowRight,
 } from '@phosphor-icons/react/dist/ssr'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import AccordStrip from '@/components/AccordStrip'
 import VoteCard from '@/components/VoteCard'
+import BuyPanel from '@/components/BuyPanel'
 import { getFragranceBySlug } from '@/lib/db'
 import styles from './page.module.css'
 
@@ -31,8 +32,6 @@ export default async function FragrancePage({ params }: Props) {
   if (!fragrance) notFound()
 
   const dupes: Array<{ id: string; match_pct: number; dupe_name: string; dupe_brand: string; price: number; saves: number; vote_count: number }> = []
-  const lowestPrice = fragrance.prices?.sort((a, b) => a.price - b.price)[0]
-
   const longevityDist = fragrance.longevity_dist ?? {}
   const sillage_dist  = fragrance.sillage_dist  ?? {}
 
@@ -131,48 +130,11 @@ export default async function FragrancePage({ params }: Props) {
           </div>
 
           {/* Buy panel */}
-          <aside className={styles.buyPanel} aria-label={`Buy ${fragrance.name}`}>
-            <div className={styles.buyHead}>
-              <div className={styles.buyTitle}>Best price</div>
-              <div className={styles.buyPriceRow}>
-                <span className={styles.buyPrice}>£{lowestPrice?.price}</span>
-                <span className={styles.buyMeta}>{lowestPrice?.size_ml}ml {fragrance.concentration}</span>
-              </div>
-            </div>
-
-            <div className={styles.sizeRow} role="group" aria-label="Select size">
-              {['30ml', '100ml', '200ml'].map((s, i) => (
-                <button key={s} className={`${styles.sizeBtn}${i === 1 ? ` ${styles.sizeBtnActive}` : ''}`}>{s}</button>
-              ))}
-            </div>
-
-            <div className={styles.retailers}>
-              {fragrance.prices?.sort((a, b) => a.price - b.price).map((p, i) => (
-                <a
-                  key={p.id}
-                  href={p.affiliate_url}
-                  className={styles.retailerRow}
-                  rel="sponsored noopener"
-                  target="_blank"
-                  aria-label={`Buy from ${p.retailer.name} for £${p.price}`}
-                >
-                  <Storefront weight="bold" size={16} className={styles.retailerIcon} aria-hidden="true" />
-                  <div>
-                    <div className={styles.retailerName}>{p.retailer.name}</div>
-                    <div className={styles.retailerNote}>Free UK delivery</div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {i === 0 && <span className={styles.bestBadge}>Best price</span>}
-                    <span className={styles.retailerPrice}>£{p.price}</span>
-                  </div>
-                </a>
-              ))}
-            </div>
-
-            <div className={styles.buyFoot}>
-              <button className={styles.trackBtn}><Bell weight="bold" size={13} /> Track price drops</button>
-            </div>
-          </aside>
+          <BuyPanel
+            prices={fragrance.prices ?? []}
+            fragranceName={fragrance.name}
+            concentration={fragrance.concentration}
+          />
 
         </section>
 

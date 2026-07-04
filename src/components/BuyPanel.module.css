@@ -1,0 +1,75 @@
+.panel {
+  position: sticky; top: 80px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; background: var(--bg);
+}
+
+/* ── Header ── */
+.head { padding: 18px 20px; border-bottom: 1px solid var(--border); background: var(--bg-warm); }
+.headTitle { font-size: 11px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--muted); }
+.headPriceRow { display: flex; align-items: baseline; gap: 6px; margin-top: 6px; }
+.headPrice { font-family: var(--font-display); font-size: 30px; font-weight: 600; color: var(--text); }
+.headMeta { font-size: 12px; color: var(--subtle); }
+.noPrices { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+/* ── Size selector ── */
+.sizeRow {
+  display: flex; gap: 6px; padding: 14px 20px;
+  border-bottom: 1px solid var(--border); flex-wrap: wrap;
+}
+.sizeBtn {
+  flex: 1; min-width: 48px; padding: 7px 4px; text-align: center;
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg); cursor: pointer; transition: all .12s;
+}
+.sizeBtn:hover { color: var(--text); border-color: var(--border-dark); }
+.sizeBtnActive { color: var(--text); border-color: var(--text); background: var(--bg-warm); }
+
+/* ── Retailer list ── */
+.retailers { display: flex; flex-direction: column; }
+.retailerRow {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  color: inherit; transition: background .12s; text-decoration: none;
+}
+.retailerRow:last-child { border-bottom: none; }
+.retailerRow:hover { background: var(--bg-warm); }
+
+.retailerIcon { color: var(--subtle); flex-shrink: 0; }
+.retailerInfo { flex: 1; min-width: 0; }
+.retailerName { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.retailerNote { font-size: 11px; color: var(--muted); }
+
+.retailerRight { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.retailerPrice { font-size: 15px; font-weight: 700; color: var(--text); }
+.extIcon { color: var(--subtle); }
+.bestBadge {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--green); background: #EAF4EE; border: 1px solid #C8E4D4;
+  border-radius: 2px; padding: 2px 6px; white-space: nowrap;
+}
+
+/* ── Footer ── */
+.foot { padding: 14px 20px; background: var(--bg-warm); border-top: 1px solid var(--border); }
+.trackBtn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted); background: transparent;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 9px; transition: all .15s; cursor: pointer;
+}
+.trackBtn:hover { color: var(--text); border-color: var(--border-dark); background: var(--bg); }
+
+.trackingConfirm {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--green); padding: 9px;
+}
+
+.disclaimer {
+  font-size: 10px; color: var(--subtle); text-align: center;
+  margin-top: 10px; line-height: 1.5;
+}
+
+@media (max-width: 1100px) { .panel { position: static; } }
