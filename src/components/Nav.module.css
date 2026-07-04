@@ -80,6 +80,13 @@
   transition: background 0.15s;
 }
 .joinBtn:hover { background: #2C2926; }
+.joinBtn[onClick] { border: none; cursor: pointer; }
+
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--black); color: var(--bg);
+  font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  cursor: default; flex-shrink: 0;
+}
 
 @media (max-width: 768px) {
   .cats { display: none; }

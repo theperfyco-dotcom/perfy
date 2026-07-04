@@ -3,12 +3,13 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import {
   Tree, Star, Heart, ListPlus, Export, ShoppingBag,
-  Clock, Wind, Sun, ThumbsUp, ThumbsDown, Drop,
+  Clock, Wind, Sun, Drop,
   Flower, Storefront, Bell, CaretRight, ArrowRight,
 } from '@phosphor-icons/react/dist/ssr'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import AccordStrip from '@/components/AccordStrip'
+import VoteCard from '@/components/VoteCard'
 import { getFragranceBySlug } from '@/lib/db'
 import styles from './page.module.css'
 
@@ -275,38 +276,7 @@ export default async function FragrancePage({ params }: Props) {
         {/* ── Vote card ─────────────────────────────── */}
         <section className={styles.voteSection} aria-labelledby="vote-heading">
           <h2 className={styles.sectionTitle} id="vote-heading">How does it <em>wear</em> for you?</h2>
-          <div className={styles.voteCard}>
-            {[
-              { title: 'Longevity', icon: <Clock weight="fill" size={14} />, options: ['8–12 hours', '12–24 hours', '4–8 hours', '24 hrs+', 'Under 4 hrs'], voted: 0 },
-              { title: 'Sillage',   icon: <Wind weight="fill" size={14} />,  options: ['Enormous', 'Strong', 'Moderate', 'Soft', 'Intimate'], voted: -1 },
-            ].map(({ title, icon, options, voted }, ci) => (
-              <div key={title} className={styles.voteCol}>
-                <div className={styles.voteColTitle}>{icon} {title}</div>
-                <div className={styles.voteOptions} role="group" aria-label={`Vote on ${title.toLowerCase()}`}>
-                  {options.map((opt, i) => (
-                    <button key={opt} className={`${styles.voteOption}${i === voted ? ` ${styles.voted}` : ''}`}>{opt}</button>
-                  ))}
-                </div>
-              </div>
-            ))}
-            <div className={styles.voteCol}>
-              <div className={styles.voteColTitle}><Star weight="fill" size={14} /> Your score</div>
-              <div className={styles.voteOptions}>
-                <div className={styles.scoreInputBox}>
-                  <span className={styles.scoreInputDash}>—</span>
-                </div>
-                <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--muted)', padding: '4px 0' }}>Tap to rate 1–10</p>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button className={`${styles.voteOption} ${styles.voteHalf}`}>
-                    <ThumbsUp weight="bold" size={14} /> Recommend
-                  </button>
-                  <button className={`${styles.voteOption} ${styles.voteHalf}`}>
-                    <ThumbsDown weight="bold" size={14} /> Pass
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <VoteCard fragranceId={fragrance.id} fragranceName={fragrance.name} />
         </section>
 
       </main>

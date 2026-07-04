@@ -1,7 +1,8 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { MagnifyingGlass, Heart, User } from '@phosphor-icons/react'
+import { MagnifyingGlass, Heart, User, SignOut } from '@phosphor-icons/react'
+import { useAuth } from '@/providers/AuthProvider'
 import styles from './Nav.module.css'
 
 const NAV_LINKS = [
@@ -15,6 +16,7 @@ const NAV_LINKS = [
 
 export default function Nav() {
   const path = usePathname()
+  const { user, openAuthModal, signOut } = useAuth()
 
   return (
     <>
@@ -48,10 +50,23 @@ export default function Nav() {
             <button className={styles.iconBtn} aria-label="Wishlist">
               <Heart weight="bold" size={18} />
             </button>
-            <button className={styles.iconBtn} aria-label="Profile">
-              <User weight="bold" size={18} />
-            </button>
-            <Link href="/join" className={styles.joinBtn}>Join free</Link>
+            {user ? (
+              <>
+                <div className={styles.avatar} aria-label={`Signed in as ${user.email}`} title={user.email}>
+                  {user.email?.[0].toUpperCase()}
+                </div>
+                <button className={styles.iconBtn} aria-label="Sign out" onClick={signOut} title="Sign out">
+                  <SignOut weight="bold" size={18} />
+                </button>
+              </>
+            ) : (
+              <>
+                <button className={styles.iconBtn} aria-label="Sign in" onClick={openAuthModal}>
+                  <User weight="bold" size={18} />
+                </button>
+                <button className={styles.joinBtn} onClick={openAuthModal}>Join free</button>
+              </>
+            )}
           </div>
         </div>
       </nav>
