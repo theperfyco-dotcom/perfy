@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: '/dupes',     label: 'Dupes' },
   { href: '/discover',  label: 'Discover' },
   { href: '/community', label: 'Community' },
+  { href: '/awards',    label: 'Awards' },
 ]
 
 export default function Nav() {

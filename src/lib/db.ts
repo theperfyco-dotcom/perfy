@@ -22,7 +22,7 @@ export interface UserRating {
 type DbAccord = { accord_name: string; percentage: number; color_hex: string | null }
 type DbNote   = { position: string; notes: { id: string; name: string; family: string } | null }
 type DbPrice  = { id: string; size_ml: number; price: number; currency: string; affiliate_url: string | null; retailers: { id: string; name: string } | null }
-type DbStats  = { id: string; avg_score: number | null; rating_count: number | null; recommend_pct: number | null }
+type DbStats  = { id: string; avg_score: number | null; rating_count: number | null; recommend_pct: number | null; avg_longevity: number | null; avg_sillage: number | null; avg_gender: number | null; avg_price_value: number | null }
 
 type DbFrag = {
   id: string; slug: string; name: string
@@ -74,9 +74,13 @@ function mapFragrance(row: DbFrag, stats?: DbStats): Fragrance {
     flat_notes: notes
       .filter(n => n.notes)
       .map(n => ({ id: n.notes!.id, name: n.notes!.name, family: n.notes!.family })),
-    avg_score:     stats?.avg_score      ?? undefined,
-    rating_count:  stats?.rating_count   ?? undefined,
-    recommend_pct: stats?.recommend_pct  ?? undefined,
+    avg_score:       stats?.avg_score       ?? undefined,
+    rating_count:    stats?.rating_count   ?? undefined,
+    recommend_pct:   stats?.recommend_pct  ?? undefined,
+    avg_longevity:   stats?.avg_longevity  ?? undefined,
+    avg_sillage:     stats?.avg_sillage    ?? undefined,
+    avg_gender:      stats?.avg_gender     ?? undefined,
+    avg_price_value: stats?.avg_price_value ?? undefined,
     prices: (row.fragrance_prices ?? [])
       .filter(p => p.retailers)
       .map(p => ({
@@ -95,7 +99,7 @@ async function getStats(ids: string[]): Promise<Map<string, DbStats>> {
   const supabase = await createClient()
   const { data } = await supabase
     .from('fragrance_stats')
-    .select('id, avg_score, rating_count, recommend_pct')
+    .select('id, avg_score, rating_count, recommend_pct, avg_longevity, avg_sillage, avg_gender, avg_price_value')
     .in('id', ids)
   return new Map((data ?? []).map(s => [s.id, s]))
 }
@@ -105,7 +109,7 @@ export async function getTopFragrances(limit = 20): Promise<Fragrance[]> {
 
   const { data: statsRows } = await supabase
     .from('fragrance_stats')
-    .select('id, avg_score, rating_count, recommend_pct')
+    .select('id, avg_score, rating_count, recommend_pct, avg_longevity, avg_sillage, avg_gender, avg_price_value')
     .gt('rating_count', 0)
     .order('rating_count', { ascending: false })
     .limit(limit)
@@ -131,45 +135,7 @@ export async function getTopFragrances(limit = 20): Promise<Fragrance[]> {
     .map(f => mapFragrance(f as unknown as DbFrag, statsMap.get(f.id)))
 }
 
-async function getFragranceDistributions(fragranceId: string): Promise<{
-  longevity_dist: Record<string, number>
-  sillage_dist: Record<string, number>
-  season_dist: Record<string, number>
-}> {
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from('ratings')
-    .select('longevity, sillage, season')
-    .eq('fragrance_id', fragranceId)
-    .limit(2000)
 
-  if (!data?.length) return { longevity_dist: {}, sillage_dist: {}, season_dist: {} }
-
-  const lonCounts: Record<string, number> = {}
-  const silCounts: Record<string, number> = {}
-  const seaCounts: Record<string, number> = {}
-
-  for (const r of data) {
-    if (r.longevity) lonCounts[r.longevity] = (lonCounts[r.longevity] ?? 0) + 1
-    if (r.sillage)  silCounts[r.sillage]  = (silCounts[r.sillage]  ?? 0) + 1
-    if (Array.isArray(r.season)) {
-      for (const s of r.season) seaCounts[s] = (seaCounts[s] ?? 0) + 1
-    }
-  }
-
-  const toPct = (counts: Record<string, number>, total: number) => {
-    const out: Record<string, number> = {}
-    for (const [k, v] of Object.entries(counts)) out[k] = Math.round(v / total * 100)
-    return out
-  }
-
-  const seaTotal = Object.values(seaCounts).reduce((a, b) => a + b, 0)
-  return {
-    longevity_dist: toPct(lonCounts, data.length),
-    sillage_dist:   toPct(silCounts, data.length),
-    season_dist:    toPct(seaCounts, seaTotal || 1),
-  }
-}
 
 export async function getFragranceBySlug(slug: string): Promise<Fragrance | null> {
   const supabase = await createClient()
@@ -189,13 +155,46 @@ export async function getFragranceBySlug(slug: string): Promise<Fragrance | null
 
   if (error || !data) return null
 
-  const statsMap = await getStats([data.id])
-  const dists = await getFragranceDistributions(data.id)
+  const [statsMap, dists] = await Promise.all([
+    getStats([data.id]),
+    getScaleDistributions(data.id),
+  ])
   const frag = mapFragrance(data as unknown as DbFrag, statsMap.get(data.id))
-  frag.longevity_dist = dists.longevity_dist
-  frag.sillage_dist   = dists.sillage_dist
-  ;(frag as any).season_dist = dists.season_dist
+  if (dists) frag.scale_dists = dists
   return frag
+}
+
+async function getScaleDistributions(fragranceId: string): Promise<Fragrance['scale_dists'] | null> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return null
+  let supabase: ReturnType<typeof createServiceClient>
+  try { supabase = createServiceClient() } catch { return null }
+  const { data } = await supabase!
+    .from('ratings')
+    .select('longevity_v2, sillage_v2, gender_rating, price_value')
+    .eq('fragrance_id', fragranceId)
+    .limit(5000)
+
+  if (!data?.length) return null
+
+  const lon = [0,0,0,0,0], sil = [0,0,0,0,0], gen = [0,0,0,0,0], pri = [0,0,0,0,0]
+  let lc = 0, sc = 0, gc = 0, pc = 0
+
+  for (const r of data) {
+    if (r.longevity_v2  >= 1 && r.longevity_v2  <= 5) { lon[r.longevity_v2  - 1]++; lc++ }
+    if (r.sillage_v2    >= 1 && r.sillage_v2    <= 5) { sil[r.sillage_v2    - 1]++; sc++ }
+    if (r.gender_rating >= 1 && r.gender_rating <= 5)  { gen[r.gender_rating - 1]++; gc++ }
+    if (r.price_value   >= 1 && r.price_value   <= 5)  { pri[r.price_value   - 1]++; pc++ }
+  }
+
+  const pct = (arr: number[], total: number) => arr.map(v => total > 0 ? Math.round(v / total * 100) : 0)
+  if (!lc && !sc && !gc && !pc) return null
+
+  return {
+    longevity:   pct(lon, lc),
+    sillage:     pct(sil, sc),
+    gender:      pct(gen, gc),
+    price_value: pct(pri, pc),
+  }
 }
 
 export async function getFragrances(opts: {
@@ -326,7 +325,113 @@ export async function getAllBrands(): Promise<Brand[]> {
   }))
 }
 
+export interface RedditStats {
+  mention_count:      number
+  avg_score:          number | null
+  avg_sentiment:      number | null
+  avg_longevity:      number | null
+  avg_sillage:        number | null
+  avg_gender:         number | null
+  avg_price_value:    number | null
+  mentions_this_month: number
+  mentions_last_month: number
+}
+
+export async function getRedditStats(fragranceId: string): Promise<RedditStats | null> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return null
+  const supabase = createServiceClient()
+  const { data } = await supabase
+    .from('fragrance_reddit_stats')
+    .select('*')
+    .eq('fragrance_id', fragranceId)
+    .single()
+  if (!data || (data.mention_count ?? 0) < 3) return null
+  const n = (v: unknown) => v !== null && v !== undefined ? parseFloat(String(v)) : null
+  return {
+    mention_count:       data.mention_count       ?? 0,
+    avg_score:           n(data.avg_score),
+    avg_sentiment:       n(data.avg_sentiment),
+    avg_longevity:       n(data.avg_longevity),
+    avg_sillage:         n(data.avg_sillage),
+    avg_gender:          n(data.avg_gender),
+    avg_price_value:     n(data.avg_price_value),
+    mentions_this_month: data.mentions_this_month ?? 0,
+    mentions_last_month: data.mentions_last_month ?? 0,
+  }
+}
+
+export interface TrendingFragrance extends Fragrance {
+  mention_count:      number
+  avg_reddit_score:   number | null
+  avg_reddit_sentiment: number | null
+  mentions_this_month: number
+  mentions_last_month: number
+}
+
+export async function getTrendingByReddit(limit = 20): Promise<TrendingFragrance[]> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return []
+  const supabase = createServiceClient()
+
+  const { data: redditRows } = await supabase
+    .from('fragrance_reddit_stats')
+    .select('fragrance_id, mention_count, avg_score, avg_sentiment, mentions_this_month, mentions_last_month')
+    .gte('mention_count', 3)
+    .order('mention_count', { ascending: false })
+    .limit(limit)
+
+  if (!redditRows?.length) return []
+  const ids = redditRows.map(r => r.fragrance_id)
+
+  const { data: frags } = await supabase
+    .from('fragrances')
+    .select(`id, slug, name, concentration, gender, year, description, image_url,
+      perfumer, fw_classification, concepts, origin, wikiparfum_slug,
+      brands(id, slug, name, country),
+      fragrance_accords(accord_name, percentage, color_hex)`)
+    .in('id', ids)
+
+  const statsMap = await getStats(ids)
+  const redditMap = new Map(redditRows.map(r => [r.fragrance_id, r]))
+
+  return (frags ?? []).map(f => {
+    const r = redditMap.get(f.id)!
+    const nn = (v: unknown) => v !== null && v !== undefined ? parseFloat(String(v)) : null
+    return {
+      ...mapFragrance(f as unknown as DbFrag, statsMap.get(f.id)),
+      mention_count:        r.mention_count        ?? 0,
+      avg_reddit_score:     nn(r.avg_score),
+      avg_reddit_sentiment: nn(r.avg_sentiment),
+      mentions_this_month:  r.mentions_this_month  ?? 0,
+      mentions_last_month:  r.mentions_last_month  ?? 0,
+    }
+  }).sort((a, b) => b.mention_count - a.mention_count)
+}
+
+export async function getTopRatedFragrances(limit = 20): Promise<Fragrance[]> {
+  const supabase = await createClient()
+  const { data: statsRows } = await supabase
+    .from('fragrance_stats')
+    .select('id, avg_score, rating_count, recommend_pct, avg_longevity, avg_sillage, avg_gender, avg_price_value')
+    .gt('rating_count', 2)
+    .order('avg_score', { ascending: false })
+    .limit(limit)
+  if (!statsRows?.length) return []
+  const ids = statsRows.map(s => s.id)
+  const { data } = await supabase
+    .from('fragrances')
+    .select(`id, slug, name, concentration, gender, year, description, image_url,
+      perfumer, fw_classification, concepts, origin, wikiparfum_slug,
+      brands(id, slug, name, country),
+      fragrance_accords(accord_name, percentage, color_hex)`)
+    .in('id', ids)
+  const statsMap = new Map(statsRows.map(s => [s.id, s]))
+  return (data ?? [])
+    .sort((a, b) => (statsMap.get(b.id)?.avg_score ?? 0) - (statsMap.get(a.id)?.avg_score ?? 0))
+    .map(f => mapFragrance(f as unknown as DbFrag, statsMap.get(f.id)))
+}
+
 export async function getUserRatings(userId: string): Promise<UserRating[]> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return []
   const supabase = createServiceClient()
   const { data, error } = await supabase
     .from('ratings')

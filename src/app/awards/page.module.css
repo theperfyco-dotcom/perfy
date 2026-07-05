@@ -1,0 +1,111 @@
+/* ── Header ── */
+.header {
+  background: var(--bg-warm);
+  border-bottom: 1px solid var(--border);
+  padding: 56px 32px 48px;
+}
+.headerInner { max-width: 900px; margin: 0 auto; }
+
+.eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent, #B5844A);
+  margin-bottom: 12px;
+}
+.title {
+  font-family: var(--font-display); font-size: clamp(32px, 5vw, 52px);
+  font-weight: 400; line-height: 1.05; color: var(--text);
+  letter-spacing: -0.5px; margin-bottom: 14px; text-wrap: balance;
+}
+.sub {
+  font-size: 14px; color: var(--muted); max-width: 600px; line-height: 1.7;
+}
+
+/* ── Body ── */
+.body { max-width: 1100px; margin: 0 auto; padding: 48px 32px 80px; }
+
+/* ── Month picker ── */
+.monthPicker {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 36px;
+}
+.monthBtn {
+  font-size: 12px; font-weight: 500; color: var(--muted);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 6px 14px; background: var(--bg); transition: all .12s;
+  text-decoration: none;
+}
+.monthBtn:hover { color: var(--text); border-color: var(--border-dark); background: var(--bg-warm); }
+.monthBtnActive { color: var(--text); border-color: var(--text); background: var(--bg-warm); font-weight: 700; }
+
+/* ── Month heading ── */
+.monthHeading {
+  display: flex; align-items: baseline; gap: 12px; margin-bottom: 28px;
+}
+.monthTitle {
+  font-family: var(--font-display); font-size: 24px; font-weight: 400;
+  color: var(--text); letter-spacing: -0.2px;
+}
+.monthCount { font-size: 12px; color: var(--subtle); }
+
+/* ── Award grid ── */
+.awardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.awardCard {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; background: var(--bg);
+  display: flex; flex-direction: column; gap: 14px;
+  text-decoration: none; color: inherit;
+  transition: background .12s, border-color .12s;
+}
+.awardCard:hover { background: var(--bg-warm); border-color: var(--border-dark); }
+
+.awardBadge {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 5px 10px;
+  border-radius: var(--radius-sm); align-self: flex-start;
+}
+
+.awardFragrance { display: flex; gap: 14px; align-items: center; }
+
+.awardImgWrap {
+  width: 64px; height: 64px; flex-shrink: 0;
+  border-radius: var(--radius-sm); overflow: hidden;
+  background: var(--bg-warm); border: 1px solid var(--border);
+  position: relative;
+}
+.awardImgPlaceholder { width: 100%; height: 100%; background: var(--border); }
+
+.awardInfo { flex: 1; min-width: 0; }
+.awardBrand {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--subtle); margin-bottom: 3px;
+}
+.awardName {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  line-height: 1.2; margin-bottom: 5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.awardStat { font-size: 12px; font-weight: 700; }
+
+.awardDesc { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0; }
+
+/* ── Empty state ── */
+.empty { padding: 48px 0; text-align: center; font-size: 15px; color: var(--text); }
+.emptySub { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+/* ── Attribution ── */
+.attribution {
+  margin-top: 48px; font-size: 11px; color: var(--subtle);
+  line-height: 1.6; border-top: 1px solid var(--border); padding-top: 20px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .header { padding: 36px 16px 32px; }
+  .body   { padding: 32px 16px 60px; }
+  .awardGrid { grid-template-columns: 1fr; }
+}

@@ -22,9 +22,10 @@ export const SEED_FRAGRANCES: Fragrance[] = [
     avg_score: 9.8,
     rating_count: 31420,
     recommend_pct: 94,
-    longevity_dist: { '24hrs+': 12, '12-24hrs': 28, '8-12hrs': 38, '4-8hrs': 16, 'under-4hrs': 6 },
-    sillage_dist: { enormous: 18, strong: 42, moderate: 28, soft: 8, intimate: 4 },
-    gender_dist: { masculine: 71, feminine: 29, unisex: 0 },
+    avg_longevity: 4,
+    avg_sillage: 4,
+    avg_gender: 4,
+    avg_price_value: 2,
     prices: [
       { id: 'p1', retailer: { id: 'r1', name: 'Creed Official' },     size_ml: 100, price: 275, currency: 'GBP', affiliate_url: '#' },
       { id: 'p2', retailer: { id: 'r2', name: 'John Lewis' },         size_ml: 100, price: 239, currency: 'GBP', affiliate_url: '#' },

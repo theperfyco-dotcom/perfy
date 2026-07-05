@@ -1,64 +1,148 @@
 .card {
   border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
-  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border);
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: var(--border);
 }
 
-.col { background: var(--bg); padding: 28px 24px; }
+.col { background: var(--bg); padding: 24px 20px; }
+.submitCol { background: var(--bg-warm); }
 
 .colTitle {
   font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--subtle); margin-bottom: 20px; display: flex; align-items: center; gap: 6px;
+  color: var(--subtle); margin-bottom: 16px; display: flex; align-items: center; gap: 5px;
 }
 
-.options { display: flex; flex-direction: column; gap: 6px; }
+/* ── Options list — with community ghost bars ── */
+.options { display: flex; flex-direction: column; gap: 5px; }
 
 .option {
-  display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500;
-  color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-sm);
-  padding: 10px 14px; background: var(--bg); cursor: pointer; transition: all .12s;
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 500; color: var(--muted);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 8px 10px; background: var(--bg); cursor: pointer; transition: all .10s;
   text-align: left;
 }
 .option:hover { color: var(--text); border-color: var(--border-dark); background: var(--bg-warm); }
-.active { color: var(--text); border-color: var(--border-dark); background: var(--bg-warm2); }
-.half { flex: 1; justify-content: center; }
+.active { color: var(--text); border-color: var(--text); font-weight: 700; }
 
-/* Score grid */
+.ghostBar {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: var(--cpct, 0%);
+  background: var(--border);
+  pointer-events: none; z-index: 0;
+  transition: width .3s ease;
+}
+.active .ghostBar { background: color-mix(in srgb, var(--text) 10%, transparent); }
+
+.optNum {
+  position: relative; z-index: 1;
+  font-size: 9px; font-weight: 700; color: var(--subtle);
+  background: var(--border); border-radius: 2px; padding: 1px 4px; flex-shrink: 0;
+}
+.active .optNum { background: var(--text); color: var(--bg); }
+
+.optLabel { position: relative; z-index: 1; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.optCpct {
+  position: relative; z-index: 1;
+  font-size: 9px; font-weight: 600; color: var(--subtle); flex-shrink: 0;
+  margin-left: auto;
+}
+.active .optCpct { color: var(--muted); }
+
+/* ── Score grid ── */
 .scoreGrid {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 10px;
 }
 .scoreBtn {
   aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 600; color: var(--muted);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
-  background: var(--bg); cursor: pointer; transition: all .12s;
+  background: var(--bg); cursor: pointer; transition: all .10s;
 }
 .scoreBtn:hover { color: var(--text); border-color: var(--border-dark); background: var(--bg-warm); }
-.scoreBtnActive { color: var(--bg); background: var(--black); border-color: var(--black); }
+.scoreBtnActive { color: var(--bg) !important; background: var(--black); border-color: var(--black); }
+.scoreHint { font-size: 11px; color: var(--muted); font-style: italic; margin-top: 6px; }
 
-.recommendRow { display: flex; gap: 6px; margin-bottom: 16px; }
-
-/* Auth note */
-.authNote { font-size: 12px; color: var(--muted); text-align: center; margin-bottom: 10px; }
-.authLink { background: none; border: none; color: var(--text); font-weight: 600; font-size: 12px; cursor: pointer; text-decoration: underline; padding: 0; }
-
-.errMsg { font-size: 12px; color: #B84A4A; margin-bottom: 10px; }
-
-.submitBtn { width: 100%; justify-content: center; }
+/* ── Submit col ── */
+.authNote { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+.errMsg   { font-size: 11px; color: #B84A4A; margin-bottom: 10px; }
+.submitBtn { width: 100%; justify-content: center; margin-bottom: 10px; }
 .submitBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+.submitNote { font-size: 10px; color: var(--subtle); line-height: 1.5; }
 
-/* Done state */
-.done {
-  border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 48px 32px; text-align: center; background: var(--bg-warm);
+/* ── Done / result state ── */
+.doneWrap {
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+  background: var(--bg);
 }
-.doneIcon { color: var(--green); margin-bottom: 16px; }
+
+.doneHeader {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 24px;
+  background: var(--bg-warm); border-bottom: 1px solid var(--border);
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.doneCheck { color: var(--green); flex-shrink: 0; }
+
+.doneBody {
+  padding: 24px; display: flex; gap: 28px; align-items: flex-start;
+}
+
+.doneScoreBlock { flex-shrink: 0; text-align: center; }
 .doneScore {
   font-family: var(--font-display); font-size: 56px; font-weight: 600;
-  color: var(--text); line-height: 1; margin-bottom: 8px; letter-spacing: -2px;
+  color: var(--text); line-height: 1; letter-spacing: -3px;
+  font-variant-numeric: tabular-nums;
 }
-.doneScore span { font-size: 24px; color: var(--subtle); }
-.doneTitle { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
-.doneSub { font-size: 13px; color: var(--muted); max-width: 320px; margin: 0 auto; line-height: 1.6; }
+.doneScore span { font-size: 22px; color: var(--subtle); font-weight: 400; }
+.doneScoreLabel { font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 6px; }
 
-/* Responsive */
-@media (max-width: 1024px) { .card { grid-template-columns: 1fr; } }
+.doneSummary {
+  flex: 1; display: flex; flex-direction: column; gap: 10px;
+  padding-left: 28px; border-left: 1px solid var(--border);
+}
+.doneSummaryRow {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.doneSummaryLabel {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.10em;
+  text-transform: uppercase; color: var(--subtle);
+}
+.doneSummaryVal { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.doneSummaryOpt { font-size: 13px; font-weight: 600; color: var(--text); }
+.doneSummaryCommunity { font-size: 11px; color: var(--muted); }
+.doneSummarySkipped { font-size: 12px; color: var(--subtle); }
+
+/* ── Save / sign-up prompt ── */
+.savePrompt {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 20px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-warm);
+}
+.saveIcon { color: var(--accent, #B5844A); flex-shrink: 0; margin-top: 2px; }
+.saveContent { flex: 1; }
+.saveTitle { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.saveSub {
+  font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 14px;
+  max-width: 480px;
+}
+.saveBtns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.saveSignIn {
+  font-size: 13px; font-weight: 500; color: var(--muted);
+  background: none; border: none; cursor: pointer; padding: 0;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.saveSignIn:hover { color: var(--text); }
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .card { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
+  .card { grid-template-columns: 1fr; }
+  .col { padding: 20px 16px; }
+  .doneBody { flex-direction: column; gap: 20px; }
+  .doneSummary { padding-left: 0; border-left: none; border-top: 1px solid var(--border); padding-top: 20px; }
+}

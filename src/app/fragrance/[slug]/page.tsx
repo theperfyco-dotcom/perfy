@@ -3,19 +3,139 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import {
-  Tree, ShoppingBag,
-  Clock, Wind, Sun, Drop, Flower, CaretRight, ArrowRight,
+  Tree, Drop, Flower, CaretRight, ArrowRight, RedditLogo, TrendUp,
 } from '@phosphor-icons/react/dist/ssr'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import AccordStrip from '@/components/AccordStrip'
-import VoteCard from '@/components/VoteCard'
 import BuyPanel from '@/components/BuyPanel'
 import FragranceActions from '@/components/FragranceActions'
-import { getFragranceBySlug, getDupes } from '@/lib/db'
+import VoteCard from '@/components/VoteCard'
+import { getFragranceBySlug, getDupes, getRedditStats, type RedditStats } from '@/lib/db'
 import styles from './page.module.css'
 
 interface Props { params: Promise<{ slug: string }> }
+
+// ── Scale definitions ────────────────────────────────────────────────────────
+const SCALES = [
+  { key: 'longevity',   label: 'Longevity',     options: ['Barely there', 'Weak',          'Moderate',   'Long-lasting', 'Eternal'    ] },
+  { key: 'sillage',     label: 'Sillage',       options: ['Skin scent',   'Close',         'Moderate',   'Strong',       'Beast mode' ] },
+  { key: 'gender',      label: 'Gender',        options: ['All female',   'Mostly female', 'Unisex',     'Mostly male',  'All male'   ] },
+  { key: 'price_value', label: 'Price & value', options: ['Way overpriced','Overpriced',   'Fair price', 'Good value',   'Great value'] },
+] as const
+
+type ScaleKey = typeof SCALES[number]['key']
+
+function scaleAvgLabel(options: readonly string[], avg: number | undefined): string | null {
+  if (!avg) return null
+  return options[Math.round(avg) - 1] ?? null
+}
+
+// ── Distribution bar display ─────────────────────────────────────────────────
+function ScaleDisplay({ label, avg, dist, options }: {
+  label: string
+  avg: number | undefined
+  dist: number[] | undefined  // [pct_1…pct_5]
+  options: readonly string[]
+}) {
+  const hasDist = dist && dist.some(v => v > 0)
+  const peak = hasDist ? dist.indexOf(Math.max(...dist)) : -1
+
+  return (
+    <div className={styles.scaleDisplay}>
+      <div className={styles.scaleDisplayHead}>
+        <span className={styles.scaleDisplayLabel}>{label}</span>
+        {avg && <span className={styles.scaleDisplayAvg}>{scaleAvgLabel(options, avg)}</span>}
+      </div>
+
+      <div className={styles.scaleBars}>
+        {options.map((opt, i) => {
+          const pct = hasDist ? (dist[i] ?? 0) : 0
+          const isPeak = i === peak && pct > 0
+          return (
+            <div key={opt} className={`${styles.scaleBarRow} ${isPeak ? styles.scaleBarRowPeak : ''}`}>
+              <span className={styles.scaleBarNum}>{i + 1}</span>
+              <span className={styles.scaleBarLabel}>{opt}</span>
+              <div className={styles.scaleBarTrack}>
+                <div className={styles.scaleBarFill} style={{ width: hasDist ? `${pct}%` : '0%' }} />
+              </div>
+              <span className={styles.scaleBarPct}>{hasDist ? `${pct}%` : '—'}</span>
+            </div>
+          )
+        })}
+      </div>
+
+      {!hasDist && <p className={styles.scaleNoData}>No ratings yet</p>}
+    </div>
+  )
+}
+
+// ── Reddit signal section ────────────────────────────────────────────────────
+function RedditSignal({ stats }: { stats: RedditStats }) {
+  const signals: { label: string; value: number | null; opts: string[] }[] = [
+    { label: 'Longevity',  value: stats.avg_longevity,   opts: ['Barely there','Weak','Moderate','Long-lasting','Eternal'] },
+    { label: 'Sillage',   value: stats.avg_sillage,      opts: ['Skin scent','Close','Moderate','Strong','Beast mode'] },
+    { label: 'Gender',    value: stats.avg_gender,       opts: ['All female','Mostly female','Unisex','Mostly male','All male'] },
+    { label: 'Value',     value: stats.avg_price_value,  opts: ['Way overpriced','Overpriced','Fair price','Good value','Great value'] },
+  ]
+  const sentPct = stats.avg_sentiment !== null ? Math.round((stats.avg_sentiment + 1) * 50) : null
+  const rising  = stats.mentions_this_month > stats.mentions_last_month
+
+  return (
+    <section className={styles.redditSection} aria-labelledby="reddit-heading">
+      <div className={styles.redditHead}>
+        <div className={styles.redditTitle}>
+          <RedditLogo size={18} weight="fill" className={styles.redditIcon} aria-hidden="true" />
+          <h2 className={styles.sectionTitle} id="reddit-heading">Reddit <em>community</em></h2>
+        </div>
+        <span className={styles.redditCount}>
+          {stats.mention_count} posts analysed
+          {rising && <span className={styles.redditRising}><TrendUp size={11} weight="bold" /> trending</span>}
+        </span>
+      </div>
+
+      <div className={styles.redditLayout}>
+        {/* Score + sentiment */}
+        <div className={styles.redditScoreCol}>
+          {stats.avg_score !== null && (
+            <div className={styles.redditScoreBlock}>
+              <span className={styles.redditScoreNum}>{stats.avg_score.toFixed(1)}</span>
+              <span className={styles.redditScoreMax}>/10</span>
+              <div className={styles.redditScoreLabel}>Reddit score</div>
+            </div>
+          )}
+          {sentPct !== null && (
+            <div className={styles.redditSentiment}>
+              <div className={styles.redditSentBar}>
+                <div className={styles.redditSentFill} style={{ width: `${sentPct}%` }} />
+              </div>
+              <span className={styles.redditSentPct}>{sentPct}% positive</span>
+            </div>
+          )}
+        </div>
+
+        {/* Signal bars */}
+        <div className={styles.redditSignals}>
+          {signals.map(({ label, value, opts }) => {
+            if (!value) return null
+            const idx = Math.round(value) - 1
+            const pct = Math.round((value / 5) * 100)
+            return (
+              <div key={label} className={styles.redditSignalRow}>
+                <span className={styles.redditSignalLabel}>{label}</span>
+                <div className={styles.redditSignalTrack}>
+                  <div className={styles.redditSignalFill} style={{ width: `${pct}%` }} />
+                </div>
+                <span className={styles.redditSignalVal}>{opts[idx] ?? ''}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+      <p className={styles.redditFooter}>AI-analysed sentiment from r/fragrance &amp; r/fragranceclones</p>
+    </section>
+  )
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
@@ -50,16 +170,19 @@ export default async function FragrancePage({ params }: Props) {
   const fragrance = await getFragranceBySlug(slug)
   if (!fragrance) notFound()
 
-  const longevityDist = fragrance.longevity_dist ?? {}
-  const sillageDist   = fragrance.sillage_dist  ?? {}
-  const dupes = await getDupes(fragrance.id, 6)
+  const [dupes, redditStats] = await Promise.all([
+    getDupes(fragrance.id, 6),
+    getRedditStats(fragrance.id),
+  ])
 
-  // All notes flat — prefer flat_notes (Wikiparfum has no position data)
   const allNotes = fragrance.flat_notes?.length
     ? fragrance.flat_notes
     : [...(fragrance.top_notes ?? []), ...(fragrance.heart_notes ?? []), ...(fragrance.base_notes ?? [])]
 
-  // JSON-LD structured data for SEO + LLM
+  const hasScales = !!(fragrance.avg_longevity || fragrance.avg_sillage || fragrance.avg_gender || fragrance.avg_price_value)
+
+  const sortedAccords = [...(fragrance.accords ?? [])].sort((a, b) => b.percentage - a.percentage)
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -82,7 +205,6 @@ export default async function FragrancePage({ params }: Props) {
     <>
       <Nav />
 
-      {/* JSON-LD */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -101,7 +223,7 @@ export default async function FragrancePage({ params }: Props) {
 
       <main itemScope itemType="https://schema.org/Product">
 
-        {/* ── Hero — 2-col: image + info ──────────────── */}
+        {/* ── Hero ────────────────────────────────────── */}
         <section className={styles.hero} aria-labelledby="frag-name">
 
           {/* Image column */}
@@ -121,10 +243,8 @@ export default async function FragrancePage({ params }: Props) {
                 <Tree weight="fill" size={100} className={styles.imgIcon} aria-hidden="true" />
               )}
             </div>
-
-            {/* Accord strip under image — scent fingerprint */}
-            {fragrance.accords && fragrance.accords.length > 0 && (
-              <AccordStrip accords={fragrance.accords} height={8} gap={0} />
+            {sortedAccords.length > 0 && (
+              <AccordStrip accords={sortedAccords} height={8} gap={0} />
             )}
           </div>
 
@@ -137,13 +257,13 @@ export default async function FragrancePage({ params }: Props) {
             <p className={styles.variant}>
               {[
                 fragrance.concentration,
-                fragrance.gender === 'masculine' ? 'For Him' : fragrance.gender === 'feminine' ? 'For Her' : 'Unisex',
+                fragrance.gender === 'masculine' ? 'For Him' : fragrance.gender === 'feminine' ? 'For Her' : fragrance.gender === 'unisex' ? 'Unisex' : null,
                 fragrance.year?.toString(),
                 fragrance.origin,
               ].filter(Boolean).join(' · ')}
             </p>
 
-            {/* ── Community score — the hero ── */}
+            {/* ── Score + compact metrics ── */}
             <div className={styles.scoreBlock} itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
               {fragrance.avg_score ? (
                 <>
@@ -151,12 +271,27 @@ export default async function FragrancePage({ params }: Props) {
                     <span className={styles.scoreNum} itemProp="ratingValue">{fragrance.avg_score.toFixed(1)}</span>
                     <span className={styles.scoreMax}>/10</span>
                   </div>
+                  <meta itemProp="bestRating" content="10" />
+                  <meta itemProp="worstRating" content="1" />
+                  <meta itemProp="ratingCount" content={String(fragrance.rating_count ?? 0)} />
                   <p className={styles.scoreContext}>
-                    <meta itemProp="bestRating" content="10" />
-                    <meta itemProp="worstRating" content="1" />
-                    <meta itemProp="ratingCount" content={String(fragrance.rating_count ?? 0)} />
                     Based on <strong>{fragrance.rating_count?.toLocaleString()}</strong> community ratings
                   </p>
+                  {/* Compact scale chips */}
+                  {hasScales && (
+                    <div className={styles.metricChips}>
+                      {SCALES.map(({ key, label, options }) => {
+                        const avg = fragrance[`avg_${key}` as `avg_${ScaleKey}`] as number | undefined
+                        if (!avg) return null
+                        return (
+                          <div key={key} className={styles.metricChip}>
+                            <span className={styles.metricChipKey}>{label}</span>
+                            <span className={styles.metricChipVal}>{scaleAvgLabel(options, avg)}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className={styles.noScore}>
@@ -166,16 +301,21 @@ export default async function FragrancePage({ params }: Props) {
               )}
             </div>
 
-            {/* ── Accords ── */}
-            {fragrance.accords && fragrance.accords.length > 0 && (
+            {/* ── Scent profile — visual accord bars ── */}
+            {sortedAccords.length > 0 && (
               <div className={styles.accordSection}>
                 <h2 className={styles.sectionLabel}>Scent profile</h2>
-                <AccordStrip accords={fragrance.accords} height={40} showLabels />
-                <div className={styles.accordLegend}>
-                  {fragrance.accords.map(a => (
-                    <div key={a.name} className={styles.accordPill}>
-                      <div className={styles.accDot} style={{ background: `var(--acc-${a.name.toLowerCase()}, #C0B8B0)` }} />
-                      {a.name} <span className={styles.accPct}>{a.percentage}%</span>
+                <div className={styles.accordBars}>
+                  {sortedAccords.slice(0, 8).map(a => (
+                    <div key={a.name} className={styles.accordBar}>
+                      <span className={styles.accordBarName}>{a.name}</span>
+                      <div className={styles.accordBarTrack}>
+                        <div
+                          className={styles.accordBarFill}
+                          style={{ width: `${a.percentage}%`, background: a.color_hex ?? '#B8B0A8' }}
+                        />
+                      </div>
+                      <span className={styles.accordBarPct}>{a.percentage}%</span>
                     </div>
                   ))}
                 </div>
@@ -226,6 +366,49 @@ export default async function FragrancePage({ params }: Props) {
 
         </section>
 
+        {/* ── Rate this — inline, visible without scrolling ── */}
+        <section className={styles.voteSection} aria-labelledby="vote-heading">
+          <h2 className={styles.sectionTitle} id="vote-heading">Rate <em>{fragrance.name}</em></h2>
+          <p className={styles.voteText}>Score it, vote on longevity, sillage, gender and value — your ratings shape the community profile below.</p>
+          <VoteCard fragranceId={fragrance.id} fragranceName={fragrance.name} scaleDists={fragrance.scale_dists} />
+        </section>
+
+        {/* ── Community ratings ── */}
+        <section className={styles.communitySection} aria-labelledby="ratings-heading">
+          <h2 className={styles.sectionTitle} id="ratings-heading">Community <em>ratings</em></h2>
+
+          {fragrance.avg_score ? (
+            <div className={styles.communityLayout}>
+              {/* Big score */}
+              <div className={styles.communityScore}>
+                <div className={styles.comScoreNum}>{fragrance.avg_score.toFixed(1)}</div>
+                <div className={styles.comScoreMax}>/10</div>
+                <div className={styles.comScoreCount}>{fragrance.rating_count?.toLocaleString()} ratings</div>
+              </div>
+
+              {/* 4 scales with % bars */}
+              <div className={styles.communityScales}>
+                {SCALES.map(({ key, label, options }) => (
+                  <ScaleDisplay
+                    key={key}
+                    label={label}
+                    avg={fragrance[`avg_${key}` as `avg_${ScaleKey}`] as number | undefined}
+                    dist={fragrance.scale_dists?.[key as keyof typeof fragrance.scale_dists]}
+                    options={options}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.noRatings}>
+              <p>No community ratings yet — be the first above</p>
+            </div>
+          )}
+        </section>
+
+        {/* ── Reddit community signal ──────────────── */}
+        {redditStats && <RedditSignal stats={redditStats} />}
+
         {/* ── Notes pyramid ─────────────────────────── */}
         {(fragrance.top_notes?.length || fragrance.heart_notes?.length || fragrance.base_notes?.length || allNotes.length > 0) && (
           <section className={styles.notesSection} aria-labelledby="notes-heading">
@@ -249,7 +432,6 @@ export default async function FragrancePage({ params }: Props) {
                   </div>
                 ))
               ) : (
-                // Flat notes (from Wikiparfum — no tier data)
                 <div className={styles.pyramidTier}>
                   <div className={styles.pyramidTierLabel}><Tree weight="fill" size={12} /> Ingredients</div>
                   <div className={styles.pyramidNotes}>
@@ -265,64 +447,17 @@ export default async function FragrancePage({ params }: Props) {
           </section>
         )}
 
-        {/* ── Community ratings ─────────────────────── */}
-        <section className={styles.communitySection} aria-labelledby="ratings-heading">
-          <h2 className={styles.sectionTitle} id="ratings-heading">Community <em>ratings</em></h2>
-          <div className={styles.ratingsGrid}>
-            {[
-              { title: 'Longevity', icon: <Clock weight="fill" size={14} />, data: longevityDist,
-                order: ['24hrs+', '12-24hrs', '8-12hrs', '4-8hrs', 'under-4hrs'],
-                labels: ['24 hrs+', '12–24 hrs', '8–12 hrs', '4–8 hrs', 'Under 4 hrs'] },
-              { title: 'Sillage', icon: <Wind weight="fill" size={14} />, data: sillageDist,
-                order: ['enormous', 'strong', 'moderate', 'soft', 'intimate'],
-                labels: ['Enormous', 'Strong', 'Moderate', 'Soft', 'Intimate'] },
-              ...(Object.keys((fragrance as any).season_dist ?? {}).length > 0 ? [{
-                title: 'Best season', icon: <Sun weight="fill" size={14} />, data: (fragrance as any).season_dist as Record<string, number>,
-                order: ['spring', 'summer', 'autumn', 'winter', 'any'],
-                labels: ['Spring', 'Summer', 'Autumn', 'Winter', 'Any'],
-              }] : []),
-            ].map(({ title, icon, data, order, labels }) => (
-              <div key={title} className={styles.ratingCard}>
-                <div className={styles.ratingCardTitle}>{icon} {title}</div>
-                <div className={styles.ratingBars}>
-                  {order.map((key, i) => {
-                    const val = (data as Record<string, number>)[key] ?? 0
-                    return (
-                      <div key={key} className={styles.ratingBarRow}>
-                        <span className={styles.rbLabel}>{labels[i]}</span>
-                        <div className={styles.rbTrack}><div className={styles.rbFill} style={{ width: `${val}%` }} /></div>
-                        <span className={styles.rbVal}>{val}%</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {fragrance.recommend_pct != null && (
-            <div className={styles.recommendBar} role="region" aria-label="Recommendation summary">
-              <div className={styles.recommendPct}>{fragrance.recommend_pct}%</div>
-              <div>
-                <div className={styles.recommendLabel}>would recommend {fragrance.name}</div>
-                <div className={styles.recommendSub}>Based on {fragrance.rating_count?.toLocaleString()} community ratings</div>
-              </div>
-            </div>
-          )}
+        {/* ── Where to buy ─────────────────────────────── */}
+        <section className={styles.buySection} id="buy" aria-labelledby="buy-heading">
+          <h2 className={styles.sectionTitle} id="buy-heading">Where to <em>buy</em></h2>
+          <p className={styles.buySub}>Prices tracked across authorised UK retailers</p>
+          <BuyPanel
+            prices={fragrance.prices ?? []}
+            fragranceName={fragrance.name}
+            brandName={fragrance.brand.name}
+            concentration={fragrance.concentration}
+          />
         </section>
-
-        {/* ── Where to buy — secondary ───────────────── */}
-        {(fragrance.prices && fragrance.prices.length > 0) && (
-          <section className={styles.buySection} id="buy" aria-labelledby="buy-heading">
-            <h2 className={styles.sectionTitle} id="buy-heading">Where to <em>buy</em></h2>
-            <p className={styles.buySub}>Prices tracked across authorised UK retailers</p>
-            <BuyPanel
-              prices={fragrance.prices}
-              fragranceName={fragrance.name}
-              concentration={fragrance.concentration}
-            />
-          </section>
-        )}
 
         {/* ── Similar fragrances ────────────────────── */}
         {dupes.length > 0 && (
@@ -355,11 +490,6 @@ export default async function FragrancePage({ params }: Props) {
           </section>
         )}
 
-        {/* ── Rate this ─────────────────────────────── */}
-        <section className={styles.voteSection} aria-labelledby="vote-heading">
-          <h2 className={styles.sectionTitle} id="vote-heading">How does it <em>wear</em> for you?</h2>
-          <VoteCard fragranceId={fragrance.id} fragranceName={fragrance.name} />
-        </section>
 
       </main>
       <Footer />

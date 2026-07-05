@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, MagnifyingGlass } from '@phosphor-icons/react/di
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import FragranceCard from '@/components/FragranceCard'
-import { getFragrances } from '@/lib/db'
+import { getFragrances, getTopRatedFragrances } from '@/lib/db'
 import styles from './page.module.css'
 
 export const metadata: Metadata = {
@@ -33,7 +33,12 @@ export default async function DiscoverPage({ searchParams }: Props) {
   const search = params.search
   const page   = Math.max(1, parseInt(params.page ?? '1', 10))
 
-  const { fragrances, total } = await getFragrances({ gender, accord, sort, search, page, limit: PAGE_SIZE })
+  const isTopRated = sort === 'rating'
+  const [{ fragrances, total }] = await Promise.all([
+    isTopRated
+      ? getTopRatedFragrances(48).then(f => ({ fragrances: f, total: f.length }))
+      : getFragrances({ gender, accord, sort, search, page, limit: PAGE_SIZE }),
+  ])
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
   function filterHref(overrides: Record<string, string | undefined>) {
@@ -139,8 +144,9 @@ export default async function DiscoverPage({ searchParams }: Props) {
               <div className={styles.filterLabel}>Sort by</div>
               <div className={styles.filterOptions}>
                 {[
-                  { label: 'Name A–Z', value: 'name' },
+                  { label: 'Name A–Z',    value: 'name'    },
                   { label: 'Newest first', value: 'newest' },
+                  { label: 'Top rated',   value: 'rating'  },
                 ].map(({ label, value }) => (
                   <Link
                     key={value}

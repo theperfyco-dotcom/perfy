@@ -1,0 +1,17 @@
+{
+  "functions": {
+    "src/app/api/admin/reddit-ingest/route.ts": { "maxDuration": 60 },
+    "src/app/api/admin/reddit-awards/route.ts": { "maxDuration": 60 },
+    "src/app/api/admin/reddit-debug/route.ts":  { "maxDuration": 60 }
+  },
+  "crons": [
+    {
+      "path": "/api/admin/reddit-ingest",
+      "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/admin/reddit-awards",
+      "schedule": "0 4 1 * *"
+    }
+  ]
+}

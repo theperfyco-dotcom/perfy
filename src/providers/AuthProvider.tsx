@@ -25,10 +25,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data.user)
       setLoading(false)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
       setLoading(false)
-      if (session?.user) setAuthModalOpen(false)
+      if (session?.user) {
+        setAuthModalOpen(false)
+        // Flush any anonymous vote held in localStorage
+        try {
+          const pending = localStorage.getItem('perfy_pending_vote')
+          if (pending) {
+            fetch('/api/ratings', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: pending,
+            }).finally(() => localStorage.removeItem('perfy_pending_vote'))
+          }
+        } catch {}
+      }
     })
     return () => subscription.unsubscribe()
   }, [])

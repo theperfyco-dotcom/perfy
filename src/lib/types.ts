@@ -47,12 +47,16 @@ export interface Fragrance {
   avg_score?: number
   rating_count?: number
   recommend_pct?: number
-  avg_longevity?: string
-  avg_sillage?: string
-  longevity_dist?: Record<string, number>
-  sillage_dist?: Record<string, number>
-  season_dist?: Record<string, number>
-  gender_dist?: { masculine: number; feminine: number; unisex: number }
+  avg_longevity?: number   // 1–5 scale
+  avg_sillage?: number     // 1–5 scale
+  avg_gender?: number      // 1–5 scale (1=all-female … 5=all-male)
+  avg_price_value?: number // 1–5 scale
+  scale_dists?: {
+    longevity:   number[]  // [pct_1, pct_2, pct_3, pct_4, pct_5]
+    sillage:     number[]
+    gender:      number[]
+    price_value: number[]
+  }
   prices?: FragrancePrice[]
 }
 

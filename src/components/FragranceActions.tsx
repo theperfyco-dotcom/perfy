@@ -9,9 +9,10 @@ interface Props {
   fragranceId: string
   fragranceName: string
   brandName: string
+  variant?: 'default' | 'cta'
 }
 
-export default function FragranceActions({ fragranceId, fragranceName, brandName }: Props) {
+export default function FragranceActions({ fragranceId, fragranceName, brandName, variant = 'default' }: Props) {
   const { user, openAuthModal } = useAuth()
   const [ratingOpen,  setRatingOpen]  = useState(false)
   const [rated,       setRated]       = useState(false)
@@ -55,14 +56,14 @@ export default function FragranceActions({ fragranceId, fragranceName, brandName
 
   return (
     <>
-      <div className={styles.actions}>
+      <div className={`${styles.actions} ${variant === 'cta' ? styles.actionsCta : ''}`}>
         <button
-          className={`btn-primary ${rated ? styles.ratedBtn : ''}`}
+          className={`btn-primary ${rated ? styles.ratedBtn : ''} ${variant === 'cta' ? styles.ctaRateBtn : ''}`}
           onClick={handleRate}
           aria-label="Rate this fragrance"
         >
           <Star weight={rated ? 'fill' : 'bold'} size={14} />
-          {rated ? 'Rated' : 'Rate this'}
+          {rated ? 'Rated' : 'Rate this fragrance'}
         </button>
         <button
           className={`btn-secondary ${wishlisted ? styles.wishlistedBtn : ''}`}
