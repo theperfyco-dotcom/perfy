@@ -56,6 +56,9 @@ function mapFragrance(row: DbFrag, stats?: DbStats): Fragrance {
     top_notes:   byPosition('top'),
     heart_notes: byPosition('heart'),
     base_notes:  byPosition('base'),
+    flat_notes: notes
+      .filter(n => n.notes)
+      .map(n => ({ id: n.notes!.id, name: n.notes!.name, family: n.notes!.family })),
     avg_score:     stats?.avg_score      ?? undefined,
     rating_count:  stats?.rating_count   ?? undefined,
     recommend_pct: stats?.recommend_pct  ?? undefined,
@@ -85,19 +88,72 @@ async function getStats(ids: string[]): Promise<Map<string, DbStats>> {
 export async function getTopFragrances(limit = 20): Promise<Fragrance[]> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
-    .from('fragrances')
-    .select(`
-      id, slug, name, concentration, gender, year, description, image_url,
-      brands(id, slug, name, country),
-      fragrance_accords(accord_name, percentage, color_hex)
-    `)
+  const { data: statsRows } = await supabase
+    .from('fragrance_stats')
+    .select('id, avg_score, rating_count, recommend_pct')
+    .gt('rating_count', 0)
+    .order('rating_count', { ascending: false })
     .limit(limit)
 
-  if (error) { console.error('getTopFragrances:', error.message); return [] }
+  if (!statsRows?.length) {
+    const { data } = await supabase
+      .from('fragrances')
+      .select(`id, slug, name, concentration, gender, year, description, image_url, brands(id, slug, name, country), fragrance_accords(accord_name, percentage, color_hex)`)
+      .order('name')
+      .limit(limit)
+    return (data ?? []).map(f => mapFragrance(f as unknown as DbFrag))
+  }
 
-  const statsMap = await getStats((data ?? []).map(f => f.id))
-  return (data ?? []).map(f => mapFragrance(f as unknown as DbFrag, statsMap.get(f.id)))
+  const ids = statsRows.map(s => s.id)
+  const { data } = await supabase
+    .from('fragrances')
+    .select(`id, slug, name, concentration, gender, year, description, image_url, brands(id, slug, name, country), fragrance_accords(accord_name, percentage, color_hex)`)
+    .in('id', ids)
+
+  const statsMap = new Map(statsRows.map(s => [s.id, s]))
+  return (data ?? [])
+    .sort((a, b) => (statsMap.get(b.id)?.rating_count ?? 0) - (statsMap.get(a.id)?.rating_count ?? 0))
+    .map(f => mapFragrance(f as unknown as DbFrag, statsMap.get(f.id)))
+}
+
+async function getFragranceDistributions(fragranceId: string): Promise<{
+  longevity_dist: Record<string, number>
+  sillage_dist: Record<string, number>
+  season_dist: Record<string, number>
+}> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('ratings')
+    .select('longevity, sillage, season')
+    .eq('fragrance_id', fragranceId)
+    .limit(2000)
+
+  if (!data?.length) return { longevity_dist: {}, sillage_dist: {}, season_dist: {} }
+
+  const lonCounts: Record<string, number> = {}
+  const silCounts: Record<string, number> = {}
+  const seaCounts: Record<string, number> = {}
+
+  for (const r of data) {
+    if (r.longevity) lonCounts[r.longevity] = (lonCounts[r.longevity] ?? 0) + 1
+    if (r.sillage)  silCounts[r.sillage]  = (silCounts[r.sillage]  ?? 0) + 1
+    if (Array.isArray(r.season)) {
+      for (const s of r.season) seaCounts[s] = (seaCounts[s] ?? 0) + 1
+    }
+  }
+
+  const toPct = (counts: Record<string, number>, total: number) => {
+    const out: Record<string, number> = {}
+    for (const [k, v] of Object.entries(counts)) out[k] = Math.round(v / total * 100)
+    return out
+  }
+
+  const seaTotal = Object.values(seaCounts).reduce((a, b) => a + b, 0)
+  return {
+    longevity_dist: toPct(lonCounts, data.length),
+    sillage_dist:   toPct(silCounts, data.length),
+    season_dist:    toPct(seaCounts, seaTotal || 1),
+  }
 }
 
 export async function getFragranceBySlug(slug: string): Promise<Fragrance | null> {
@@ -119,7 +175,12 @@ export async function getFragranceBySlug(slug: string): Promise<Fragrance | null
   if (error || !data) return null
 
   const statsMap = await getStats([data.id])
-  return mapFragrance(data as unknown as DbFrag, statsMap.get(data.id))
+  const dists = await getFragranceDistributions(data.id)
+  const frag = mapFragrance(data as unknown as DbFrag, statsMap.get(data.id))
+  frag.longevity_dist = dists.longevity_dist
+  frag.sillage_dist   = dists.sillage_dist
+  ;(frag as any).season_dist = dists.season_dist
+  return frag
 }
 
 export async function getFragrances(opts: {

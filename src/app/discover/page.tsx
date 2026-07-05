@@ -8,7 +8,7 @@ import { getFragrances } from '@/lib/db'
 import styles from './page.module.css'
 
 export const metadata: Metadata = {
-  title: 'Discover Fragrances — Perfy',
+  title: 'Discover Fragrances',
   description: 'Browse and filter 4,000+ fragrances by gender, scent family, and more.',
 }
 

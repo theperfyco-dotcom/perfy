@@ -43,6 +43,7 @@ export interface Fragrance {
   top_notes?: Note[]
   heart_notes?: Note[]
   base_notes?: Note[]
+  flat_notes?: Note[]
   avg_score?: number
   rating_count?: number
   recommend_pct?: number
@@ -50,6 +51,7 @@ export interface Fragrance {
   avg_sillage?: string
   longevity_dist?: Record<string, number>
   sillage_dist?: Record<string, number>
+  season_dist?: Record<string, number>
   gender_dist?: { masculine: number; feminine: number; unisex: number }
   prices?: FragrancePrice[]
 }

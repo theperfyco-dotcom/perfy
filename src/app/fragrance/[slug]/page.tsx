@@ -53,12 +53,10 @@ export default async function FragrancePage({ params }: Props) {
   const sillageDist   = fragrance.sillage_dist  ?? {}
   const dupes: Array<{ id: string; match_pct: number; dupe_name: string; dupe_brand: string; price: number; saves: number; vote_count: number }> = []
 
-  // All notes flat (Wikiparfum-sourced have no position)
-  const allNotes = [
-    ...(fragrance.top_notes ?? []),
-    ...(fragrance.heart_notes ?? []),
-    ...(fragrance.base_notes ?? []),
-  ]
+  // All notes flat — prefer flat_notes (Wikiparfum has no position data)
+  const allNotes = fragrance.flat_notes?.length
+    ? fragrance.flat_notes
+    : [...(fragrance.top_notes ?? []), ...(fragrance.heart_notes ?? []), ...(fragrance.base_notes ?? [])]
 
   // JSON-LD structured data for SEO + LLM
   const jsonLd = {
@@ -158,19 +156,6 @@ export default async function FragrancePage({ params }: Props) {
                     <meta itemProp="ratingCount" content={String(fragrance.rating_count ?? 0)} />
                     Based on <strong>{fragrance.rating_count?.toLocaleString()}</strong> community ratings
                   </p>
-                  <div className={styles.statBars}>
-                    {[
-                      { label: 'Longevity', val: 82 },
-                      { label: 'Sillage',   val: 74 },
-                      { label: 'Value',     val: 61 },
-                    ].map(({ label, val }) => (
-                      <div key={label} className={styles.statBar}>
-                        <span className={styles.statLabel}>{label}</span>
-                        <div className={styles.statTrack}><div className={styles.statFill} style={{ width: `${val}%` }} /></div>
-                        <span className={styles.statVal}>{(val / 10).toFixed(1)}</span>
-                      </div>
-                    ))}
-                  </div>
                 </>
               ) : (
                 <div className={styles.noScore}>
@@ -291,9 +276,11 @@ export default async function FragrancePage({ params }: Props) {
               { title: 'Sillage', icon: <Wind weight="fill" size={14} />, data: sillageDist,
                 order: ['enormous', 'strong', 'moderate', 'soft', 'intimate'],
                 labels: ['Enormous', 'Strong', 'Moderate', 'Soft', 'Intimate'] },
-              { title: 'Best season', icon: <Sun weight="fill" size={14} />, data: { Spring: 32, Summer: 24, Autumn: 28, Winter: 16 },
-                order: ['Spring', 'Summer', 'Autumn', 'Winter'],
-                labels: ['Spring', 'Summer', 'Autumn', 'Winter'] },
+              ...(Object.keys((fragrance as any).season_dist ?? {}).length > 0 ? [{
+                title: 'Best season', icon: <Sun weight="fill" size={14} />, data: (fragrance as any).season_dist as Record<string, number>,
+                order: ['Spring', 'Summer', 'Autumn', 'Winter', 'Any'],
+                labels: ['Spring', 'Summer', 'Autumn', 'Winter', 'Any'],
+              }] : []),
             ].map(({ title, icon, data, order, labels }) => (
               <div key={title} className={styles.ratingCard}>
                 <div className={styles.ratingCardTitle}>{icon} {title}</div>
