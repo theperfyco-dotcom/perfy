@@ -15,6 +15,7 @@ import VoteCard from '@/components/VoteCard'
 import CollectionButton from '@/components/CollectionButton'
 import ClassificationVoting from '@/components/ClassificationVoting'
 import StatementsSection from '@/components/StatementsSection'
+import ScentFamily from '@/components/ScentFamily'
 import {
   getFragranceBySlug, getDupes, getRedditStats, getClassificationStats, getStatements,
   type RedditStats,
@@ -253,11 +254,18 @@ export default async function FragrancePage({ params }: Props) {
               ].filter(Boolean).join(' · ')}
             </p>
 
-            {/* ── Accord Bubbles — scent first ── */}
-            {sortedAccords.length > 0 && (
-              <div className={styles.accordBubbleSection}>
-                <span className={styles.sectionLabel}>Scent profile</span>
-                <AccordBubbles accords={sortedAccords} />
+            {/* ── Scent identity — family pills + accord bubbles ── */}
+            {(fragrance.fw_classification || sortedAccords.length > 0) && (
+              <div className={styles.scentIdentity}>
+                <span className={styles.sectionLabel}>Scent character</span>
+                {fragrance.fw_classification && (
+                  <ScentFamily classification={fragrance.fw_classification} />
+                )}
+                {sortedAccords.length > 0 && (
+                  <div className={styles.accordBubbleSection}>
+                    <AccordBubbles accords={sortedAccords} />
+                  </div>
+                )}
               </div>
             )}
 
@@ -340,14 +348,8 @@ export default async function FragrancePage({ params }: Props) {
             </div>
 
             {/* ── Metadata ── */}
-            {(fragrance.fw_classification || fragrance.perfumer || fragrance.origin || (fragrance.concepts && fragrance.concepts.length > 0)) && (
+            {(fragrance.perfumer || fragrance.origin || (fragrance.concepts && fragrance.concepts.length > 0)) && (
               <div className={styles.metaGrid}>
-                {fragrance.fw_classification && (
-                  <div className={styles.metaItem}>
-                    <dt className={styles.metaLabel}>Classification</dt>
-                    <dd className={styles.metaValue}>{fragrance.fw_classification}</dd>
-                  </div>
-                )}
                 {fragrance.perfumer && (
                   <div className={styles.metaItem}>
                     <dt className={styles.metaLabel}>Perfumer</dt>

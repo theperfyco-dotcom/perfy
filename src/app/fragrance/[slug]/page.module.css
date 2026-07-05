@@ -33,8 +33,14 @@
 }
 .variant { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
 
-/* ── Accord bubbles — scent first ── */
-.accordBubbleSection { margin-bottom: 24px; }
+/* ── Scent identity block (family pills + accord bubbles) ── */
+.scentIdentity {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.accordBubbleSection { /* no extra margin needed — gap handles it */ }
 .sectionLabel { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--subtle); display: block; margin-bottom: 12px; }
 
 /* ── Signal block (dual scores + metric bars) ── */
