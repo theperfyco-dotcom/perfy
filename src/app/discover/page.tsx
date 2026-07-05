@@ -29,7 +29,7 @@ export default async function DiscoverPage({ searchParams }: Props) {
   const params = await searchParams
   const gender = params.gender
   const accord = params.accord
-  const sort   = params.sort ?? 'name'
+  const sort   = params.sort ?? 'newest'
   const search = params.search
   const page   = Math.max(1, parseInt(params.page ?? '1', 10))
 
@@ -76,7 +76,7 @@ export default async function DiscoverPage({ searchParams }: Props) {
             <form method="GET" action="/discover" className={styles.searchForm}>
               {gender && <input type="hidden" name="gender" value={gender} />}
               {accord && <input type="hidden" name="accord" value={accord} />}
-              {sort !== 'name' && <input type="hidden" name="sort" value={sort} />}
+              {sort !== 'newest' && <input type="hidden" name="sort" value={sort} />}
               <div className={styles.searchWrap}>
                 <MagnifyingGlass size={14} className={styles.searchIcon} aria-hidden="true" />
                 <input
@@ -154,7 +154,7 @@ export default async function DiscoverPage({ searchParams }: Props) {
             </div>
 
             {/* Reset */}
-            {(gender || accord || search || sort !== 'name') && (
+            {(gender || accord || search || sort !== 'newest') && (
               <Link href="/discover" className={styles.resetLink}>Clear all filters</Link>
             )}
 

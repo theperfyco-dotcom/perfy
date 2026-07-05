@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const brand = await getBrandBySlug(slug)
   if (!brand) return {}
   return {
-    title: `${brand.name} Fragrances — Perfy`,
+    title: `${brand.name} Fragrances`,
     description: brand.description
       ?? `Browse all ${brand.name} fragrances, ratings, and reviews on Perfy.`,
   }

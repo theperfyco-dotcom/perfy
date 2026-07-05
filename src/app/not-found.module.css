@@ -1,0 +1,49 @@
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 32px;
+}
+
+.card {
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.code {
+  font-family: var(--font-display);
+  font-size: clamp(72px, 16vw, 120px);
+  font-weight: 400;
+  color: var(--border-dark);
+  line-height: 1;
+  letter-spacing: -2px;
+  margin-bottom: 24px;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 400;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  margin-bottom: 12px;
+}
+
+.sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 36px;
+}
+
+@media (max-width: 640px) {
+  .main { padding: 48px 16px; }
+}

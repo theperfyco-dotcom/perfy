@@ -295,3 +295,18 @@ export async function getAllBrandSlugs(): Promise<string[]> {
   const { data } = await supabase.from('brands').select('slug')
   return (data ?? []).map(b => b.slug)
 }
+
+export async function getAllBrands(): Promise<Brand[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('brands')
+    .select('id, slug, name, country')
+    .order('name', { ascending: true })
+  if (error) { console.error('getAllBrands:', error.message); return [] }
+  return (data ?? []).map(b => ({
+    id:      b.id,
+    slug:    b.slug,
+    name:    b.name,
+    country: b.country ?? undefined,
+  }))
+}
