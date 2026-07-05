@@ -1,0 +1,36 @@
+.root {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .02em;
+}
+
+.btn:hover {
+  background: var(--bg-warm);
+  color: var(--text);
+  border-color: var(--text);
+}
+
+.btnActive {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+
+.btnActive:hover {
+  opacity: 0.85;
+  color: var(--bg);
+}

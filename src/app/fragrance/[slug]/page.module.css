@@ -7,8 +7,8 @@
 /* ── Hero — 2-col: image + info ─────────── */
 .hero {
   max-width: 1200px; margin: 0 auto; padding: 48px 32px 0;
-  display: grid; grid-template-columns: 380px 1fr;
-  gap: 64px; align-items: start;
+  display: grid; grid-template-columns: 360px 1fr;
+  gap: 56px; align-items: start;
 }
 
 .imgWrap { position: sticky; top: 80px; display: flex; flex-direction: column; gap: 8px; }
@@ -28,59 +28,35 @@
 }
 .brandLink:hover { color: var(--text); }
 .name {
-  font-family: var(--font-display); font-size: clamp(30px, 4vw, 48px);
+  font-family: var(--font-display); font-size: clamp(28px, 3.5vw, 44px);
   font-weight: 400; line-height: 1.05; color: var(--text); margin-bottom: 6px; letter-spacing: -0.5px;
 }
-.variant { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+.variant { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
 
-/* ── Score block ── */
+/* ── Accord bubbles — scent first ── */
+.accordBubbleSection { margin-bottom: 24px; }
+.sectionLabel { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--subtle); display: block; margin-bottom: 12px; }
+
+/* ── Compact score row ── */
 .scoreBlock {
-  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-  padding: 20px 0; margin-bottom: 28px;
+  border-top: 1px solid var(--border);
+  padding: 16px 0;
+  margin-bottom: 20px;
 }
-.scoreHero { display: flex; align-items: baseline; gap: 4px; margin-bottom: 4px; }
+.scoreRow { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
 .scoreNum {
-  font-family: var(--font-display); font-size: 64px; font-weight: 600;
-  line-height: 1; color: var(--text); letter-spacing: -3px;
+  font-family: var(--font-display); font-size: 52px; font-weight: 600;
+  line-height: 1; color: var(--text); letter-spacing: -2px;
 }
-.scoreMax { font-size: 20px; color: var(--subtle); font-weight: 400; }
-.scoreContext { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.scoreMax { font-size: 18px; color: var(--subtle); font-weight: 400; }
+.scoreContext { font-size: 13px; color: var(--muted); }
 .scoreContext strong { color: var(--text); }
-.noScore { padding: 8px 0; }
+.noScore { padding: 4px 0; }
 .noScore p:first-child { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
 .noScoreSub { font-size: 13px; color: var(--muted); }
 
-/* ── Metric chips — compact scale summary ── */
-.metricChips { display: flex; gap: 6px; flex-wrap: wrap; }
-.metricChip {
-  display: flex; flex-direction: column; gap: 2px;
-  padding: 7px 12px; border: 1px solid var(--border);
-  border-radius: var(--radius-sm); background: var(--bg-warm);
-}
-.metricChipKey {
-  font-size: 9px; font-weight: 700; letter-spacing: 0.10em;
-  text-transform: uppercase; color: var(--subtle);
-}
-.metricChipVal { font-size: 11px; font-weight: 600; color: var(--text); }
-
-/* ── Scent profile — visual accord bars ── */
-.accordSection { margin-bottom: 24px; }
-.sectionLabel { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--subtle); margin-bottom: 12px; }
-
-.accordBars { display: flex; flex-direction: column; gap: 7px; }
-.accordBar { display: flex; align-items: center; gap: 10px; }
-.accordBarName {
-  font-size: 11px; font-weight: 600; color: var(--muted);
-  width: 110px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.accordBarTrack {
-  flex: 1; height: 6px; background: var(--border); border-radius: 4px; overflow: hidden;
-}
-.accordBarFill { height: 100%; border-radius: 4px; transition: width .3s; opacity: 0.85; }
-.accordBarPct { font-size: 10px; font-weight: 600; color: var(--subtle); width: 28px; text-align: right; flex-shrink: 0; }
-
 /* ── Metadata grid ── */
-.metaGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px 0; border-top: 1px solid var(--border); }
+.metaGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 0; border-top: 1px solid var(--border); }
 .metaFull { grid-column: 1 / -1; }
 .metaItem {}
 .metaLabel { font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--subtle); margin-bottom: 4px; display: block; }
@@ -88,90 +64,86 @@
 .conceptPills { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; }
 .conceptPill { font-size: 11px; font-weight: 500; color: var(--muted); background: var(--bg-warm); border: 1px solid var(--border); border-radius: 2px; padding: 3px 8px; }
 
-/* ── Actions ── */
-.actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; align-items: center; }
-.iconOnly { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; color: var(--muted); background: var(--bg); border: 1px solid var(--border-dark); border-radius: var(--radius-sm); transition: all .15s; }
-.iconOnly:hover { color: var(--text); background: var(--bg-warm); }
-
-/* ── Sections — full-width below hero ── */
-.sectionTitle { font-family: var(--font-display); font-size: 28px; font-weight: 400; letter-spacing: -0.2px; margin-bottom: 24px; }
+/* ── Sections shared ── */
+.sectionTitle { font-family: var(--font-display); font-size: 28px; font-weight: 400; letter-spacing: -0.2px; margin-bottom: 28px; }
 .sectionTitle em { font-style: italic; color: var(--muted); }
 
-/* ── Rate this — VoteCard section ─────────── */
-.voteSection {
-  max-width: 1200px; margin: 48px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border);
-}
-.voteText { font-size: 14px; color: var(--muted); margin-top: -16px; margin-bottom: 24px; line-height: 1.6; max-width: 640px; }
-
-/* ── Community ratings ────────────────────── */
+/* ── Community signal — 3-col unified ── */
 .communitySection {
-  max-width: 1200px; margin: 48px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border);
+  max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border);
 }
-.communityLayout {
-  display: grid; grid-template-columns: 160px 1fr;
-  gap: 0; align-items: start;
-  border: 1px solid var(--border); border-radius: var(--radius);
+.communityGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 280px;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   overflow: hidden;
 }
-.communityScore {
-  background: var(--bg-warm); padding: 28px 24px;
-  display: flex; flex-direction: column; gap: 4px; align-self: stretch;
-  border-right: 1px solid var(--border);
+.communityPanel {
+  background: var(--bg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
-.comScoreNum {
-  font-family: var(--font-display); font-size: 64px; font-weight: 600;
-  line-height: 1; color: var(--text); letter-spacing: -3px;
-}
-.comScoreMax { font-size: 16px; color: var(--subtle); font-weight: 400; margin-bottom: 4px; }
-.comScoreCount { font-size: 11px; color: var(--muted); line-height: 1.5; }
-
-/* 2-col scale grid */
-.communityScales {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
-}
-
-/* Scale display with % bars */
-.scaleDisplay { padding: 20px 24px; border-bottom: 1px solid var(--border); }
-.communityScales > .scaleDisplay:nth-child(odd)       { border-right: 1px solid var(--border); }
-.communityScales > .scaleDisplay:nth-last-child(-n+2) { border-bottom: none; }
-
-.scaleDisplayHead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; gap: 8px; }
-.scaleDisplayLabel {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.10em;
+.panelLabel {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
   text-transform: uppercase; color: var(--subtle);
 }
+.panelEmpty { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.panelEmpty p:first-child { font-weight: 600; color: var(--text); margin-bottom: 4px; }
+
+/* Ratings panel */
+.communityScore { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; }
+.comScoreNum {
+  font-family: var(--font-display); font-size: 56px; font-weight: 600;
+  line-height: 1; color: var(--text); letter-spacing: -3px;
+}
+.comScoreMax { font-size: 18px; color: var(--subtle); font-weight: 400; }
+.comScoreCount { width: 100%; font-size: 11px; color: var(--muted); }
+
+.communityScales { display: flex; flex-direction: column; gap: 0; }
+
+/* Scale display */
+.scaleDisplay { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.scaleDisplay:last-child { border-bottom: none; padding-bottom: 0; }
+.scaleDisplayHead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+.scaleDisplayLabel { font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--subtle); }
 .scaleDisplayAvg { font-size: 11px; font-weight: 700; color: var(--text); }
-
-.scaleBars { display: flex; flex-direction: column; gap: 5px; }
-.scaleBarRow {
-  display: grid; grid-template-columns: 14px 1fr 1fr 32px;
-  align-items: center; gap: 8px;
-}
-.scaleBarNum {
-  font-size: 9px; font-weight: 700; color: var(--subtle);
-  text-align: center;
-}
-.scaleBarLabel {
-  font-size: 11px; font-weight: 500; color: var(--muted);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
+.scaleBars { display: flex; flex-direction: column; gap: 4px; }
+.scaleBarRow { display: grid; grid-template-columns: 14px 1fr 1fr 30px; align-items: center; gap: 6px; }
+.scaleBarNum { font-size: 9px; font-weight: 700; color: var(--subtle); text-align: center; }
+.scaleBarLabel { font-size: 10px; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .scaleBarRowPeak .scaleBarLabel { color: var(--text); font-weight: 700; }
-.scaleBarTrack {
-  height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
-}
-.scaleBarFill {
-  height: 100%; background: var(--text); border-radius: 3px;
-  transition: width .4s ease; opacity: 0.85;
-}
+.scaleBarTrack { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.scaleBarFill { height: 100%; background: var(--text); border-radius: 3px; transition: width .4s ease; opacity: 0.8; }
 .scaleBarRowPeak .scaleBarFill { opacity: 1; }
-.scaleBarPct { font-size: 10px; font-weight: 600; color: var(--muted); text-align: right; }
+.scaleBarPct { font-size: 9px; font-weight: 600; color: var(--muted); text-align: right; }
 .scaleBarRowPeak .scaleBarPct { color: var(--text); font-weight: 700; }
-.scaleNoData { font-size: 11px; color: var(--subtle); margin-top: 8px; font-style: italic; }
+.scaleNoData { font-size: 11px; color: var(--subtle); margin-top: 6px; font-style: italic; }
 
-.noRatings { padding: 32px 0; font-size: 14px; color: var(--muted); }
+/* Reddit card */
+.redditCard { display: flex; flex-direction: column; gap: 12px; }
+.redditCardHead { display: flex; align-items: center; gap: 7px; }
+.redditCardTitle { font-size: 13px; font-weight: 600; color: var(--text); }
+.redditIcon { color: #FF4500; flex-shrink: 0; }
+.redditRising { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #16a34a; background: #dcfce7; padding: 2px 8px; border-radius: 2px; margin-left: auto; }
+.redditCardBody { display: flex; flex-direction: column; gap: 8px; }
+.redditScoreRow { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.redditScoreNum { font-family: var(--font-display); font-size: 40px; font-weight: 400; color: var(--text); line-height: 1; letter-spacing: -2px; }
+.redditScoreMax { font-size: 16px; color: var(--muted); }
+.redditScoreLabel { width: 100%; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--subtle); }
+.redditSent { display: flex; flex-direction: column; gap: 4px; }
+.redditSentBar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.redditSentFill { height: 100%; background: #16a34a; border-radius: 2px; transition: width .4s ease; }
+.redditSentPct { font-size: 11px; font-weight: 600; color: var(--muted); }
+.redditMentions { font-size: 11px; color: var(--subtle); }
+.redditCardFooter { font-size: 10px; color: var(--subtle); font-style: italic; margin-top: auto; }
 
 /* ── Notes pyramid ─────────────────────── */
-.notesSection { max-width: 1200px; margin: 48px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
+.notesSection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
 .pyramid { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; gap: 1px; background: var(--border); }
 .pyramidTier { background: var(--bg); padding: 20px 24px; }
 .pyramidTierLabel { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--subtle); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
@@ -179,12 +151,19 @@
 .pyramidNote { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 4px 10px; transition: all .12s; }
 .pyramidNote:hover { color: var(--text); border-color: var(--border-dark); background: var(--bg-warm); }
 
+/* ── Rate this — after seeing community context ── */
+.voteSection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
+.voteText { font-size: 14px; color: var(--muted); margin-top: -16px; margin-bottom: 24px; line-height: 1.6; max-width: 640px; }
+
+/* ── Statements ── */
+.statementsSection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
+
 /* ── Buy ─────────────────────────────────── */
-.buySection { max-width: 1200px; margin: 48px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
+.buySection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
 .buySub { font-size: 13px; color: var(--muted); margin-top: -16px; margin-bottom: 24px; }
 
 /* ── Similar fragrances ─────────────────── */
-.dupesSection { max-width: 1200px; margin: 48px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
+.dupesSection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 100px; border-top: 1px solid var(--border); }
 .dupeSectionHead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
 .dupesSub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
 .dupeGrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -198,58 +177,25 @@
 .dupeCardScore { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--text); }
 .dupeCardScore span { font-size: 10px; color: var(--muted); font-family: var(--font-body); font-weight: 400; }
 
-/* ── Reddit community signal ─────────── */
-.redditSection { max-width: 1200px; margin: 48px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
-.redditHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 8px; }
-.redditTitle { display: flex; align-items: center; gap: 10px; }
-.redditIcon { color: #FF4500; }
-.redditCount { font-size: 12px; color: var(--muted); font-weight: 500; display: flex; align-items: center; gap: 8px; }
-.redditRising { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #16a34a; background: #dcfce7; padding: 2px 8px; border-radius: 2px; }
-.redditLayout { display: grid; grid-template-columns: 140px 1fr; gap: 40px; align-items: start; }
-.redditScoreCol { display: flex; flex-direction: column; gap: 16px; }
-.redditScoreBlock { display: flex; align-items: baseline; gap: 2px; flex-wrap: wrap; }
-.redditScoreNum { font-family: var(--font-display); font-size: 52px; font-weight: 400; color: var(--text); line-height: 1; }
-.redditScoreMax { font-family: var(--font-display); font-size: 22px; color: var(--muted); }
-.redditScoreLabel { width: 100%; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--subtle); margin-top: 4px; }
-.redditSentiment { display: flex; flex-direction: column; gap: 5px; }
-.redditSentBar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
-.redditSentFill { height: 100%; background: #16a34a; border-radius: 2px; transition: width .4s ease; }
-.redditSentPct { font-size: 11px; font-weight: 600; color: var(--muted); }
-.redditSignals { display: flex; flex-direction: column; gap: 14px; }
-.redditSignalRow { display: grid; grid-template-columns: 80px 1fr 110px; align-items: center; gap: 12px; }
-.redditSignalLabel { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--subtle); }
-.redditSignalTrack { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
-.redditSignalFill { height: 100%; background: var(--text); border-radius: 3px; transition: width .4s ease; opacity: 0.7; }
-.redditSignalVal { font-size: 12px; font-weight: 500; color: var(--muted); }
-.redditFooter { font-size: 11px; color: var(--subtle); margin-top: 24px; font-style: italic; }
-
-/* ── CTA vote section ─────────────────── */
-.voteSection { max-width: 1200px; margin: 48px auto 0; padding: 56px 32px 100px; border-top: 1px solid var(--border); }
-.voteText { font-size: 14px; color: var(--muted); margin-top: -16px; margin-bottom: 24px; line-height: 1.6; }
-
 /* ── Responsive ── */
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
   .hero { grid-template-columns: 300px 1fr; gap: 40px; }
-  .communityLayout { grid-template-columns: 160px 1fr; }
+  .communityGrid { grid-template-columns: 1fr 1fr; }
+  .communityGrid > .communityPanel:last-child { grid-column: 1 / -1; }
   .dupeGrid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 768px) {
   .hero { grid-template-columns: 1fr; padding: 24px 16px 0; gap: 24px; }
   .imgWrap { position: static; max-width: 280px; }
-  .scoreNum { font-size: 52px; }
   .breadcrumb { padding: 11px 16px; }
-  .communityLayout { grid-template-columns: 1fr; }
-  .communityScore { border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; gap: 12px; padding: 20px; }
-  .comScoreNum { font-size: 48px; }
-  .communityScales { grid-template-columns: 1fr; }
-  .communityScales > .scaleDisplay:nth-child(odd) { border-right: none; }
-  .communityScales > .scaleDisplay:nth-last-child(-n+2) { border-bottom: 1px solid var(--border); }
-  .communityScales > .scaleDisplay:last-child { border-bottom: none; }
-  .notesSection,
   .communitySection,
+  .notesSection,
+  .voteSection,
+  .statementsSection,
   .buySection,
-  .dupesSection,
-  .voteSection { padding-left: 16px; padding-right: 16px; }
+  .dupesSection { padding-left: 16px; padding-right: 16px; }
+  .communityGrid { grid-template-columns: 1fr; }
+  .communityGrid > .communityPanel:last-child { grid-column: auto; }
   .dupeGrid { grid-template-columns: repeat(2, 1fr); }
-  .accordBarName { width: 80px; }
+  .scoreNum { font-size: 44px; }
 }

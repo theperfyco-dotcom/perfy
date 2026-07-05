@@ -461,6 +461,69 @@ export async function getUserRatings(userId: string): Promise<UserRating[]> {
   }))
 }
 
+// ── Classification stats ─────────────────────────────────────────────────────
+
+export interface ClassificationStats {
+  season_votes:   number
+  occasion_votes: number
+  style_votes:    number
+  season:   { spring: number; summer: number; autumn: number; winter: number }
+  occasion: { daily: number; office: number; evening: number; sport: number; formal: number; date: number }
+  style:    { fresh: number; elegant: number; casual: number; sporty: number; romantic: number; bold: number; dark: number; cozy: number }
+}
+
+export async function getClassificationStats(fragranceId: string): Promise<ClassificationStats | null> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return null
+  const supabase = createServiceClient()
+  const { data } = await supabase
+    .from('fragrance_classification_stats')
+    .select('*')
+    .eq('fragrance_id', fragranceId)
+    .single()
+  if (!data) return null
+  const n = (v: unknown) => v !== null && v !== undefined ? Number(v) : 0
+  return {
+    season_votes:   n(data.season_votes),
+    occasion_votes: n(data.occasion_votes),
+    style_votes:    n(data.style_votes),
+    season:   { spring: n(data.spring_pct), summer: n(data.summer_pct), autumn: n(data.autumn_pct), winter: n(data.winter_pct) },
+    occasion: { daily: n(data.occ_daily_pct), office: n(data.occ_office_pct), evening: n(data.occ_evening_pct), sport: n(data.occ_sport_pct), formal: n(data.occ_formal_pct), date: n(data.occ_date_pct) },
+    style:    { fresh: n(data.style_fresh_pct), elegant: n(data.style_elegant_pct), casual: n(data.style_casual_pct), sporty: n(data.style_sporty_pct), romantic: n(data.style_romantic_pct), bold: n(data.style_bold_pct), dark: n(data.style_dark_pct), cozy: n(data.style_cozy_pct) },
+  }
+}
+
+// ── Statements ───────────────────────────────────────────────────────────────
+
+export interface Statement {
+  id:              string
+  body:            string
+  score_scent:     number | null
+  score_longevity: number | null
+  score_sillage:   number | null
+  is_positive:     boolean | null
+  created_at:      string
+}
+
+export async function getStatements(fragranceId: string, limit = 8): Promise<Statement[]> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return []
+  const supabase = createServiceClient()
+  const { data } = await supabase
+    .from('fragrance_statements')
+    .select('id, body, score_scent, score_longevity, score_sillage, is_positive, created_at')
+    .eq('fragrance_id', fragranceId)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  return (data ?? []).map(s => ({
+    id:              s.id,
+    body:            s.body,
+    score_scent:     s.score_scent     ?? null,
+    score_longevity: s.score_longevity ?? null,
+    score_sillage:   s.score_sillage   ?? null,
+    is_positive:     s.is_positive     ?? null,
+    created_at:      s.created_at,
+  }))
+}
+
 function cosineSim(a: Record<string, number>, b: Record<string, number>): number {
   let dot = 0, magA = 0, magB = 0
   const keys = new Set([...Object.keys(a), ...Object.keys(b)])
