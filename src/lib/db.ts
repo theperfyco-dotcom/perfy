@@ -2,7 +2,7 @@
 // Server-side data fetching functions using the Supabase server client.
 
 import { createClient } from './supabase/server'
-import type { Fragrance, Note } from './types'
+import type { Fragrance, Note, Brand } from './types'
 
 type DbAccord = { accord_name: string; percentage: number; color_hex: string | null }
 type DbNote   = { position: string; notes: { id: string; name: string; family: string } | null }
@@ -179,6 +179,54 @@ export async function getAllFragranceSlugs(): Promise<string[]> {
   const supabase = await createClient()
   const { data } = await supabase.from('fragrances').select('slug')
   return (data ?? []).map(f => f.slug)
+}
+
+export async function getBrandBySlug(slug: string): Promise<Brand | null> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('brands')
+    .select('id, slug, name, country, description, logo_url')
+    .eq('slug', slug)
+    .single()
+  if (error || !data) return null
+  return {
+    id: data.id,
+    slug: data.slug,
+    name: data.name,
+    country: data.country ?? undefined,
+    description: data.description ?? undefined,
+    logo_url: data.logo_url ?? undefined,
+  }
+}
+
+export async function getFragrancesByBrand(brandSlug: string, limit = 200): Promise<Fragrance[]> {
+  const supabase = await createClient()
+
+  const { data: brandRow } = await supabase
+    .from('brands')
+    .select('id')
+    .eq('slug', brandSlug)
+    .single()
+
+  if (!brandRow) return []
+
+  const { data, error } = await supabase
+    .from('fragrances')
+    .select(`
+      id, slug, name, concentration, gender, year, description, image_url,
+      perfumer, fw_classification, concepts, origin, wikiparfum_slug,
+      brands(id, slug, name, country),
+      fragrance_accords(accord_name, percentage, color_hex)
+    `)
+    .eq('brand_id', brandRow.id)
+    .order('name')
+    .limit(limit)
+
+  if (error) { console.error('getFragrancesByBrand:', error.message); return [] }
+
+  const rows = (data ?? []) as unknown as DbFrag[]
+  const statsMap = await getStats(rows.map(f => f.id))
+  return rows.map(f => mapFragrance(f, statsMap.get(f.id)))
 }
 
 export async function getAllBrandSlugs(): Promise<string[]> {

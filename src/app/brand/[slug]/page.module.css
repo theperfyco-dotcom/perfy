@@ -1,0 +1,39 @@
+.main { min-height: 100vh; }
+
+.breadcrumbBar { border-bottom: 1px solid var(--border); background: var(--bg-warm); }
+.breadcrumb { max-width: 1200px; margin: 0 auto; padding: 11px 32px; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--subtle); }
+.breadcrumb a { color: var(--subtle); transition: color .12s; }
+.breadcrumb a:hover { color: var(--text); }
+
+.header {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-warm);
+  padding: 48px 32px 32px;
+}
+.headerInner { max-width: 1200px; margin: 0 auto; }
+
+.title { font-family: var(--font-display); font-size: clamp(28px, 4vw, 42px); font-weight: 400; color: var(--text); letter-spacing: -0.3px; margin-bottom: 4px; }
+.title em { font-style: italic; color: var(--muted); }
+
+.origin { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); margin-bottom: 10px; }
+
+.sub { font-size: 14px; color: var(--muted); font-family: var(--font-body); }
+
+.content { max-width: 1200px; margin: 0 auto; padding: 40px 32px 80px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.empty { padding: 60px 0; text-align: center; color: var(--muted); font-size: 14px; }
+
+@media (max-width: 640px) {
+  .header { padding: 32px 16px 24px; }
+  .content { padding: 24px 16px 60px; }
+  .breadcrumb { padding: 11px 16px; }
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
