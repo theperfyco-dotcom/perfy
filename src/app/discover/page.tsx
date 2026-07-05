@@ -62,7 +62,7 @@ export default async function DiscoverPage({ searchParams }: Props) {
               Discover <em>fragrances</em>
             </h1>
             <p className={styles.sub}>
-              {total.toLocaleString()} fragrances · Browse, filter, and find your next signature scent
+              {total.toLocaleString()} {total === 1 ? 'fragrance' : 'fragrances'} · Browse, filter, and find your next signature scent
             </p>
           </div>
         </div>

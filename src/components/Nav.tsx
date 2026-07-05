@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { MagnifyingGlass, Heart, User, SignOut } from '@phosphor-icons/react'
 import { useAuth } from '@/providers/AuthProvider'
 import styles from './Nav.module.css'
@@ -15,7 +15,8 @@ const NAV_LINKS = [
 ]
 
 export default function Nav() {
-  const path = usePathname()
+  const path    = usePathname()
+  const router  = useRouter()
   const { user, openAuthModal, signOut } = useAuth()
 
   return (
@@ -44,7 +45,7 @@ export default function Nav() {
           </div>
 
           <div className={styles.actions}>
-            <button className={styles.iconBtn} aria-label="Search">
+            <button className={styles.iconBtn} aria-label="Search" onClick={() => router.push('/discover')}>
               <MagnifyingGlass weight="bold" size={18} />
             </button>
             <button className={styles.iconBtn} aria-label="Wishlist">

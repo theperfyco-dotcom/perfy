@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { MagnifyingGlass, ArrowRight, Lightning, Sparkle } from '@phosphor-icons/react/dist/ssr'
+import { ArrowRight, Lightning, Sparkle } from '@phosphor-icons/react/dist/ssr'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import FragranceCard from '@/components/FragranceCard'
 import PaletteRow from '@/components/PaletteRow'
+import HomeSearch from '@/components/HomeSearch'
 import { getTopFragrances } from '@/lib/db'
 import styles from './page.module.css'
 
@@ -33,23 +34,12 @@ export default async function HomePage() {
               In-depth community ratings on longevity, sillage, and scent profile. The fragrance database trusted by enthusiasts.
             </p>
 
-            <div className={styles.heroSearch} role="search">
-              <div className={styles.heroSearchIcon} aria-hidden="true">
-                <MagnifyingGlass weight="bold" size={16} />
-              </div>
-              <input
-                type="search"
-                placeholder="Search 50,000+ fragrances…"
-                aria-label="Search fragrances"
-                className={styles.heroSearchInput}
-              />
-              <button className={styles.heroSearchBtn}>Search</button>
-            </div>
+            <HomeSearch />
 
             <div className={styles.heroTags} aria-label="Trending searches">
               <span className={styles.heroTagLabel}>Trending</span>
               {['Baccarat Rouge', 'Sauvage EDP', 'Aventus', 'Good Girl'].map(t => (
-                <Link key={t} href={`/search?q=${encodeURIComponent(t)}`} className={styles.heroTag}>{t}</Link>
+                <Link key={t} href={`/discover?search=${encodeURIComponent(t)}`} className={styles.heroTag}>{t}</Link>
               ))}
             </div>
           </div>

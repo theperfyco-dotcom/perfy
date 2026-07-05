@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import {
-  Tree, Star, Heart, ListPlus, Export, ShoppingBag,
+  Tree, ShoppingBag,
   Clock, Wind, Sun, Drop, Flower, CaretRight, ArrowRight,
 } from '@phosphor-icons/react/dist/ssr'
 import Nav from '@/components/Nav'
@@ -11,6 +11,7 @@ import Footer from '@/components/Footer'
 import AccordStrip from '@/components/AccordStrip'
 import VoteCard from '@/components/VoteCard'
 import BuyPanel from '@/components/BuyPanel'
+import FragranceActions from '@/components/FragranceActions'
 import { getFragranceBySlug } from '@/lib/db'
 import styles from './page.module.css'
 
@@ -216,12 +217,11 @@ export default async function FragrancePage({ params }: Props) {
             )}
 
             {/* ── Actions ── */}
-            <div className={styles.actions}>
-              <button className="btn-primary"><Star weight="bold" size={14} /> Rate this</button>
-              <button className="btn-secondary"><Heart weight="bold" size={14} /> Wishlist</button>
-              <button className="btn-secondary"><ListPlus weight="bold" size={14} /> Add to list</button>
-              <button className={styles.iconOnly} aria-label="Share"><Export weight="bold" size={18} /></button>
-            </div>
+            <FragranceActions
+              fragranceId={fragrance.id}
+              fragranceName={fragrance.name}
+              brandName={fragrance.brand.name}
+            />
           </div>
 
         </section>
