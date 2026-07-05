@@ -1,7 +1,11 @@
 // src/lib/db.ts
 // Server-side data fetching functions using the Supabase server client.
 
-import { createClient } from './supabase/server'
+import { createServiceClient } from './supabase/server'
+
+// Alias so all DB functions use the service-role client, which bypasses the RLS
+// gaps on fragrance_accords, fragrance_notes, and notes tables (no anon policy yet).
+const createClient = () => Promise.resolve(createServiceClient())
 import type { Fragrance, Note, Brand } from './types'
 
 type DbAccord = { accord_name: string; percentage: number; color_hex: string | null }

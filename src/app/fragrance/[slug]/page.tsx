@@ -278,7 +278,7 @@ export default async function FragrancePage({ params }: Props) {
                 labels: ['Enormous', 'Strong', 'Moderate', 'Soft', 'Intimate'] },
               ...(Object.keys((fragrance as any).season_dist ?? {}).length > 0 ? [{
                 title: 'Best season', icon: <Sun weight="fill" size={14} />, data: (fragrance as any).season_dist as Record<string, number>,
-                order: ['Spring', 'Summer', 'Autumn', 'Winter', 'Any'],
+                order: ['spring', 'summer', 'autumn', 'winter', 'any'],
                 labels: ['Spring', 'Summer', 'Autumn', 'Winter', 'Any'],
               }] : []),
             ].map(({ title, icon, data, order, labels }) => (
