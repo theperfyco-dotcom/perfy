@@ -412,7 +412,7 @@ export async function getTopRatedFragrances(limit = 20): Promise<Fragrance[]> {
   const { data: statsRows } = await supabase
     .from('fragrance_stats')
     .select('id, avg_score, rating_count, recommend_pct, avg_longevity, avg_sillage, avg_gender, avg_price_value')
-    .gt('rating_count', 2)
+    .gte('rating_count', 1)
     .order('avg_score', { ascending: false })
     .limit(limit)
   if (!statsRows?.length) return []

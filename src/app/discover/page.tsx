@@ -67,7 +67,11 @@ export default async function DiscoverPage({ searchParams }: Props) {
               Discover <em>fragrances</em>
             </h1>
             <p className={styles.sub}>
-              {total.toLocaleString()} {total === 1 ? 'fragrance' : 'fragrances'} · Browse, filter, and find your next signature scent
+              {isTopRated
+                ? total > 0
+                  ? `${total.toLocaleString()} rated ${total === 1 ? 'fragrance' : 'fragrances'} · Sorted by community score`
+                  : 'Sorted by community score · Rate fragrances to see them here'
+                : `${total.toLocaleString()} ${total === 1 ? 'fragrance' : 'fragrances'} · Browse, filter, and find your next signature scent`}
             </p>
           </div>
         </div>
@@ -192,7 +196,9 @@ export default async function DiscoverPage({ searchParams }: Props) {
 
             {fragrances.length === 0 ? (
               <div className={styles.empty}>
-                <p>No fragrances match these filters.</p>
+                {isTopRated
+                  ? <p>No community ratings yet — be the first to rate some fragrances.</p>
+                  : <p>No fragrances match these filters.</p>}
                 <Link href="/discover" className={styles.resetLink}>Clear filters</Link>
               </div>
             ) : (
