@@ -119,18 +119,16 @@
 .dupesSection { max-width: 1200px; margin: 48px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
 .dupeSectionHead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
 .dupesSub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
-.dupeGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.dupeCard { background: var(--bg); padding: 20px; transition: background .12s; }
+.dupeGrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.dupeCard { background: var(--bg); display: flex; flex-direction: column; transition: background .12s; text-decoration: none; color: inherit; position: relative; }
 .dupeCard:hover { background: var(--bg-warm); }
-.dupeMatch { font-family: var(--font-display); font-size: 24px; font-weight: 600; color: var(--green); margin-bottom: 10px; }
-.dupeCardName { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-.dupeCardBrand { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
-.dupePriceRow { display: flex; align-items: baseline; justify-content: space-between; }
-.dupeCardPrice { font-size: 16px; font-weight: 700; color: var(--text); }
-.dupeSave { font-size: 11px; font-weight: 600; color: var(--green); }
-.dupeVotes { font-size: 11px; color: var(--subtle); margin-top: 8px; }
-.dupeBuyBtn { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--bg); background: var(--black); border-radius: var(--radius-sm); padding: 8px; border: none; margin-top: 10px; transition: background .15s; }
-.dupeBuyBtn:hover { background: #2C2926; }
+.dupeMatch { position: absolute; top: 8px; right: 8px; z-index: 1; font-size: 9px; font-weight: 700; letter-spacing: .06em; background: var(--black); color: var(--bg); padding: 3px 7px; border-radius: var(--radius-sm); }
+.dupeImgWrap { width: 100%; aspect-ratio: 1; position: relative; background: var(--bg-warm); }
+.dupeCardBody { padding: 10px 12px 14px; }
+.dupeCardBrand { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.dupeCardName { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 4px; }
+.dupeCardScore { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--text); }
+.dupeCardScore span { font-size: 10px; color: var(--muted); font-family: var(--font-body); font-weight: 400; }
 
 /* ── Vote card ───────────────────────────── */
 .voteSection { max-width: 1200px; margin: 48px auto 0; padding: 56px 32px 100px; border-top: 1px solid var(--border); }
@@ -139,7 +137,7 @@
 @media (max-width: 1024px) {
   .hero { grid-template-columns: 300px 1fr; gap: 40px; }
   .ratingsGrid { grid-template-columns: 1fr 1fr; }
-  .dupeGrid { grid-template-columns: 1fr 1fr; }
+  .dupeGrid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 768px) {
   .hero { grid-template-columns: 1fr; padding: 24px 16px 0; gap: 24px; }
@@ -152,5 +150,5 @@
   .dupesSection,
   .voteSection { padding-left: 16px; padding-right: 16px; }
   .ratingsGrid { grid-template-columns: 1fr; }
-  .dupeGrid { grid-template-columns: 1fr; }
+  .dupeGrid { grid-template-columns: repeat(2, 1fr); }
 }

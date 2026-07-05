@@ -1,8 +1,23 @@
 // src/lib/db.ts
 // Server-side data fetching functions using the Supabase server client.
 
-import { createClient } from './supabase/server'
+import { createClient, createServiceClient } from './supabase/server'
 import type { Fragrance, Note, Brand } from './types'
+
+export interface UserRating {
+  id: string
+  score: number
+  longevity: string | null
+  sillage: string | null
+  season: string[] | null
+  recommend: boolean | null
+  created_at: string
+  fragrance: {
+    id: string; slug: string; name: string
+    image_url: string | null
+    brand: { name: string; slug: string }
+  }
+}
 
 type DbAccord = { accord_name: string; percentage: number; color_hex: string | null }
 type DbNote   = { position: string; notes: { id: string; name: string; family: string } | null }
@@ -309,4 +324,97 @@ export async function getAllBrands(): Promise<Brand[]> {
     name:    b.name,
     country: b.country ?? undefined,
   }))
+}
+
+export async function getUserRatings(userId: string): Promise<UserRating[]> {
+  const supabase = createServiceClient()
+  const { data, error } = await supabase
+    .from('ratings')
+    .select(`id, score, longevity, sillage, season, recommend, created_at,
+      fragrances(id, slug, name, image_url, brands(name, slug))`)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+  if (error) { console.error('getUserRatings:', error.message); return [] }
+  return (data ?? []).map((r: any) => ({
+    id: r.id,
+    score: r.score,
+    longevity: r.longevity,
+    sillage: r.sillage,
+    season: r.season,
+    recommend: r.recommend,
+    created_at: r.created_at,
+    fragrance: {
+      id:       r.fragrances?.id    ?? '',
+      slug:     r.fragrances?.slug  ?? '',
+      name:     r.fragrances?.name  ?? '',
+      image_url: r.fragrances?.image_url ?? null,
+      brand: {
+        name: r.fragrances?.brands?.name ?? '',
+        slug: r.fragrances?.brands?.slug ?? '',
+      },
+    },
+  }))
+}
+
+function cosineSim(a: Record<string, number>, b: Record<string, number>): number {
+  let dot = 0, magA = 0, magB = 0
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+  for (const k of keys) {
+    const av = a[k] ?? 0, bv = b[k] ?? 0
+    dot += av * bv; magA += av * av; magB += bv * bv
+  }
+  return magA && magB ? dot / (Math.sqrt(magA) * Math.sqrt(magB)) : 0
+}
+
+export async function getDupes(fragranceId: string, limit = 6): Promise<Array<Fragrance & { similarity: number }>> {
+  const supabase = await createClient()
+
+  const { data: targetAccords } = await supabase
+    .from('fragrance_accords')
+    .select('accord_name, percentage')
+    .eq('fragrance_id', fragranceId)
+  if (!targetAccords?.length) return []
+
+  const targetVec: Record<string, number> = {}
+  for (const a of targetAccords) targetVec[a.accord_name] = a.percentage
+  const topNames = Object.entries(targetVec).sort((a,b) => b[1]-a[1]).slice(0,3).map(a=>a[0])
+
+  const { data: candidateRows } = await supabase
+    .from('fragrance_accords')
+    .select('fragrance_id')
+    .in('accord_name', topNames)
+    .neq('fragrance_id', fragranceId)
+  const candidateIds = [...new Set((candidateRows ?? []).map(c => c.fragrance_id))].slice(0, 150)
+  if (!candidateIds.length) return []
+
+  const { data: allAccords } = await supabase
+    .from('fragrance_accords')
+    .select('fragrance_id, accord_name, percentage')
+    .in('fragrance_id', candidateIds)
+
+  const vecs: Record<string, Record<string, number>> = {}
+  for (const a of allAccords ?? []) {
+    if (!vecs[a.fragrance_id]) vecs[a.fragrance_id] = {}
+    vecs[a.fragrance_id][a.accord_name] = a.percentage
+  }
+
+  const ranked = Object.entries(vecs)
+    .map(([id, vec]) => ({ id, sim: cosineSim(targetVec, vec) }))
+    .sort((a, b) => b.sim - a.sim)
+    .slice(0, limit)
+
+  const topIds = ranked.map(r => r.id)
+  const { data: frags } = await supabase
+    .from('fragrances')
+    .select(`id, slug, name, concentration, gender, year, description, image_url,
+      perfumer, fw_classification, concepts, origin, wikiparfum_slug,
+      brands(id, slug, name, country),
+      fragrance_accords(accord_name, percentage, color_hex)`)
+    .in('id', topIds)
+
+  const simMap = new Map(ranked.map(r => [r.id, Math.round(r.sim * 100)]))
+  const statsMap = await getStats(topIds)
+  return (frags ?? [])
+    .map(f => ({ ...mapFragrance(f as unknown as DbFrag, statsMap.get(f.id)), similarity: simMap.get(f.id) ?? 0 }))
+    .sort((a, b) => b.similarity - a.similarity)
 }

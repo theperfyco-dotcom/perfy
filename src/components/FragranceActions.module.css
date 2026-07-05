@@ -11,3 +11,6 @@
 
 .ratedBtn { background: var(--green) !important; }
 .ratedBtn:hover { background: #4a7d5f !important; }
+
+.wishlistedBtn { background: #FFF0F5 !important; border-color: #D4648A !important; color: #D4648A !important; }
+.wishlistedBtn:hover { background: #FFE4EF !important; }

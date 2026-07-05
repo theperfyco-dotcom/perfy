@@ -53,9 +53,9 @@ export default function Nav() {
             </button>
             {user ? (
               <>
-                <div className={styles.avatar} aria-label={`Signed in as ${user.email}`} title={user.email}>
+                <Link href="/profile" className={styles.avatar} aria-label="My profile" title={user.email ?? 'Profile'}>
                   {user.email?.[0].toUpperCase()}
-                </div>
+                </Link>
                 <button className={styles.iconBtn} aria-label="Sign out" onClick={signOut} title="Sign out">
                   <SignOut weight="bold" size={18} />
                 </button>

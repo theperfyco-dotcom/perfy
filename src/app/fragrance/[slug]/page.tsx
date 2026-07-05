@@ -12,7 +12,7 @@ import AccordStrip from '@/components/AccordStrip'
 import VoteCard from '@/components/VoteCard'
 import BuyPanel from '@/components/BuyPanel'
 import FragranceActions from '@/components/FragranceActions'
-import { getFragranceBySlug } from '@/lib/db'
+import { getFragranceBySlug, getDupes } from '@/lib/db'
 import styles from './page.module.css'
 
 interface Props { params: Promise<{ slug: string }> }
@@ -52,7 +52,7 @@ export default async function FragrancePage({ params }: Props) {
 
   const longevityDist = fragrance.longevity_dist ?? {}
   const sillageDist   = fragrance.sillage_dist  ?? {}
-  const dupes: Array<{ id: string; match_pct: number; dupe_name: string; dupe_brand: string; price: number; saves: number; vote_count: number }> = []
+  const dupes = await getDupes(fragrance.id, 6)
 
   // All notes flat — prefer flat_notes (Wikiparfum has no position data)
   const allNotes = fragrance.flat_notes?.length
@@ -324,29 +324,32 @@ export default async function FragrancePage({ params }: Props) {
           </section>
         )}
 
-        {/* ── Dupes ─────────────────────────────────── */}
+        {/* ── Similar fragrances ────────────────────── */}
         {dupes.length > 0 && (
           <section className={styles.dupesSection} aria-labelledby="dupes-heading">
             <div className={styles.dupeSectionHead}>
-              <h2 className={styles.sectionTitle} id="dupes-heading">Community <em>dupes</em></h2>
-              <Link href={`/dupes/${slug}`} className="section-link">
-                All dupes <ArrowRight weight="bold" size={12} />
+              <h2 className={styles.sectionTitle} id="dupes-heading">Similar <em>fragrances</em></h2>
+              <Link href={`/dupes?search=${encodeURIComponent(fragrance.name)}`} className="section-link">
+                Explore dupes <ArrowRight weight="bold" size={12} />
               </Link>
             </div>
-            <p className={styles.dupesSub}>Matched by members testing side-by-side</p>
+            <p className={styles.dupesSub}>Sorted by scent-profile similarity</p>
             <div className={styles.dupeGrid}>
               {dupes.map(d => (
-                <div key={d.id} className={styles.dupeCard}>
-                  <div className={styles.dupeMatch}>{d.match_pct}%</div>
-                  <div className={styles.dupeCardName}>{d.dupe_name}</div>
-                  <div className={styles.dupeCardBrand}>{d.dupe_brand}</div>
-                  <div className={styles.dupePriceRow}>
-                    <span className={styles.dupeCardPrice}>£{d.price}</span>
-                    <span className={styles.dupeSave}>Save £{d.saves}</span>
+                <Link key={d.id} href={`/fragrance/${d.slug}`} className={styles.dupeCard}>
+                  <div className={styles.dupeMatch}>{d.similarity}% match</div>
+                  {d.image_url && (
+                    <div className={styles.dupeImgWrap}>
+                      <Image src={d.image_url} alt={d.name} fill sizes="140px" style={{ objectFit: 'contain', padding: '8px' }} />
+                    </div>
+                  )}
+                  {d.accords && d.accords.length > 0 && <AccordStrip accords={d.accords} height={4} gap={0} />}
+                  <div className={styles.dupeCardBody}>
+                    <div className={styles.dupeCardBrand}>{d.brand.name}</div>
+                    <div className={styles.dupeCardName}>{d.name}</div>
+                    {d.avg_score && <div className={styles.dupeCardScore}>{d.avg_score.toFixed(1)}<span>/10</span></div>}
                   </div>
-                  <div className={styles.dupeVotes}>{d.vote_count.toLocaleString()} members confirmed</div>
-                  <button className={styles.dupeBuyBtn}><ShoppingBag weight="bold" size={12} /> Buy now</button>
-                </div>
+                </Link>
               ))}
             </div>
           </section>
