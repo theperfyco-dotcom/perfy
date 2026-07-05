@@ -181,13 +181,14 @@ export default async function FragrancePage({ params }: Props) {
   }
 
   // Pre-compute metric rows for hero signal block
+  const HERO_LABELS: Record<string, string> = { price_value: 'Value' }
   const heroMetrics = SCALES.map(({ key, label, options }) => {
     const perfyAvg  = fragrance[`avg_${key}` as `avg_${ScaleKey}`] as number | undefined
     const redditAvg = redditStats?.[`avg_${key}` as keyof RedditStats] as number | null | undefined
     if (!perfyAvg && !redditAvg) return null
     const consensusAvg   = perfyAvg ?? (redditAvg ?? 0)
     const consensusLabel = scaleAvgLabel(options, consensusAvg)
-    return { key, label, perfyAvg: perfyAvg ?? null, redditAvg: redditAvg ?? null, consensusLabel }
+    return { key, label: HERO_LABELS[key] ?? label, perfyAvg: perfyAvg ?? null, redditAvg: redditAvg ?? null, consensusLabel }
   }).filter(Boolean) as { key: string; label: string; perfyAvg: number | null; redditAvg: number | null; consensusLabel: string | null }[]
 
   return (

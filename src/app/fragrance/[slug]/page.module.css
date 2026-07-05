@@ -74,8 +74,8 @@
 
 /* Metric bars */
 .metricsList { display: flex; flex-direction: column; gap: 8px; }
-.metricRow { display: grid; grid-template-columns: 76px 1fr auto; align-items: center; gap: 10px; }
-.metricLabel { font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--subtle); }
+.metricRow { display: grid; grid-template-columns: 90px 1fr auto; align-items: center; gap: 10px; }
+.metricLabel { font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--subtle); white-space: nowrap; }
 .metricBars { display: flex; flex-direction: column; gap: 3px; }
 .metricTrack { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
 .metricTrackDim { opacity: 0.4; }
