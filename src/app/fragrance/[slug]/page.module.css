@@ -37,23 +37,62 @@
 .accordBubbleSection { margin-bottom: 24px; }
 .sectionLabel { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--subtle); display: block; margin-bottom: 12px; }
 
-/* ── Compact score row ── */
-.scoreBlock {
+/* ── Signal block (dual scores + metric bars) ── */
+.signalBlock {
   border-top: 1px solid var(--border);
-  padding: 16px 0;
+  padding: 18px 0 20px;
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
-.scoreRow { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+
+/* Scores row */
+.scoresRow { display: flex; align-items: flex-start; gap: 20px; }
+.scoreColPerfy { display: flex; flex-direction: column; gap: 3px; min-width: 80px; }
+.scorePair { display: flex; align-items: baseline; gap: 3px; }
 .scoreNum {
-  font-family: var(--font-display); font-size: 52px; font-weight: 600;
+  font-family: var(--font-display); font-size: 48px; font-weight: 600;
   line-height: 1; color: var(--text); letter-spacing: -2px;
 }
-.scoreMax { font-size: 18px; color: var(--subtle); font-weight: 400; }
-.scoreContext { font-size: 13px; color: var(--muted); }
-.scoreContext strong { color: var(--text); }
-.noScore { padding: 4px 0; }
-.noScore p:first-child { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-.noScoreSub { font-size: 13px; color: var(--muted); }
+.scoreMax { font-size: 16px; color: var(--subtle); font-weight: 400; }
+.scoreDash { font-family: var(--font-display); font-size: 32px; color: var(--subtle); line-height: 1; }
+.scoreSublabel { font-size: 11px; color: var(--muted); font-weight: 500; }
+
+.scoreDivider { width: 1px; background: var(--border); align-self: stretch; flex-shrink: 0; }
+
+.scoreColReddit { display: flex; flex-direction: column; gap: 3px; }
+.redditScoreHead { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+.redditIconSmall { color: #FF4500; }
+.redditSourceLabel { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.redditRisingMini { display: inline-flex; color: #16a34a; }
+.scoreNumReddit {
+  font-family: var(--font-display); font-size: 36px; font-weight: 400;
+  line-height: 1; color: var(--text); letter-spacing: -1.5px;
+}
+.scoreMaxSm { font-size: 13px; color: var(--subtle); font-weight: 400; }
+
+/* Metric bars */
+.metricsList { display: flex; flex-direction: column; gap: 8px; }
+.metricRow { display: grid; grid-template-columns: 76px 1fr auto; align-items: center; gap: 10px; }
+.metricLabel { font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--subtle); }
+.metricBars { display: flex; flex-direction: column; gap: 3px; }
+.metricTrack { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.metricTrackDim { opacity: 0.4; }
+.metricFillPerfy { height: 100%; background: var(--text); border-radius: 2px; transition: width .4s ease; }
+.metricFillReddit { height: 100%; background: #FF4500; border-radius: 2px; transition: width .4s ease; opacity: 0.75; }
+.metricConsensus { font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; }
+
+.metricLegend {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 4px;
+  font-size: 10px; color: var(--subtle); font-weight: 500;
+}
+.legDot {
+  display: inline-block; width: 8px; height: 4px; border-radius: 2px;
+  background: var(--text); opacity: 0.7;
+}
+.legDotReddit { background: #FF4500; }
 
 /* ── Metadata grid ── */
 .metaGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 0; border-top: 1px solid var(--border); }

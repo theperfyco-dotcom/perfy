@@ -180,6 +180,16 @@ export default async function FragrancePage({ params }: Props) {
     } : {}),
   }
 
+  // Pre-compute metric rows for hero signal block
+  const heroMetrics = SCALES.map(({ key, label, options }) => {
+    const perfyAvg  = fragrance[`avg_${key}` as `avg_${ScaleKey}`] as number | undefined
+    const redditAvg = redditStats?.[`avg_${key}` as keyof RedditStats] as number | null | undefined
+    if (!perfyAvg && !redditAvg) return null
+    const consensusAvg   = perfyAvg ?? (redditAvg ?? 0)
+    const consensusLabel = scaleAvgLabel(options, consensusAvg)
+    return { key, label, perfyAvg: perfyAvg ?? null, redditAvg: redditAvg ?? null, consensusLabel }
+  }).filter(Boolean) as { key: string; label: string; perfyAvg: number | null; redditAvg: number | null; consensusLabel: string | null }[]
+
   return (
     <>
       <Nav />
@@ -250,25 +260,80 @@ export default async function FragrancePage({ params }: Props) {
               </div>
             )}
 
-            {/* ── Compact score ── */}
-            <div className={styles.scoreBlock} itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
-              {fragrance.avg_score ? (
-                <>
-                  <div className={styles.scoreRow}>
-                    <span className={styles.scoreNum} itemProp="ratingValue">{fragrance.avg_score.toFixed(1)}</span>
-                    <span className={styles.scoreMax}>/10</span>
-                    <span className={styles.scoreContext}>
-                      from <strong>{fragrance.rating_count?.toLocaleString()}</strong> ratings
-                    </span>
+            {/* ── Signal block: dual scores + dual-source metrics ── */}
+            <div className={styles.signalBlock} itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
+              {/* Scores row */}
+              <div className={styles.scoresRow}>
+                {/* Perfy score */}
+                <div className={styles.scoreColPerfy}>
+                  <div className={styles.scorePair}>
+                    {fragrance.avg_score
+                      ? <><span className={styles.scoreNum} itemProp="ratingValue">{fragrance.avg_score.toFixed(1)}</span><span className={styles.scoreMax}>/10</span></>
+                      : <span className={styles.scoreDash}>—</span>
+                    }
                   </div>
-                  <meta itemProp="bestRating" content="10" />
-                  <meta itemProp="worstRating" content="1" />
-                  <meta itemProp="ratingCount" content={String(fragrance.rating_count ?? 0)} />
-                </>
-              ) : (
-                <div className={styles.noScore}>
-                  <p>No community ratings yet</p>
-                  <p className={styles.noScoreSub}>Be the first to rate this fragrance</p>
+                  <span className={styles.scoreSublabel}>
+                    {fragrance.rating_count
+                      ? `${fragrance.rating_count.toLocaleString()} ratings`
+                      : 'No ratings yet'
+                    }
+                  </span>
+                </div>
+
+                {redditStats && (
+                  <>
+                    <div className={styles.scoreDivider} aria-hidden="true" />
+                    <div className={styles.scoreColReddit}>
+                      <div className={styles.redditScoreHead}>
+                        <RedditLogo size={12} weight="fill" className={styles.redditIconSmall} aria-hidden="true" />
+                        <span className={styles.redditSourceLabel}>Reddit</span>
+                        {redditStats.mentions_this_month > redditStats.mentions_last_month && (
+                          <span className={styles.redditRisingMini}>
+                            <TrendUp size={9} weight="bold" />
+                          </span>
+                        )}
+                      </div>
+                      <div className={styles.scorePair}>
+                        {redditStats.avg_score !== null
+                          ? <><span className={styles.scoreNumReddit}>{redditStats.avg_score.toFixed(1)}</span><span className={styles.scoreMaxSm}>/10</span></>
+                          : <span className={styles.scoreDash}>—</span>
+                        }
+                      </div>
+                      <span className={styles.scoreSublabel}>{redditStats.mention_count.toLocaleString()} posts</span>
+                    </div>
+                  </>
+                )}
+
+                {fragrance.avg_score && (
+                  <>
+                    <meta itemProp="bestRating" content="10" />
+                    <meta itemProp="worstRating" content="1" />
+                    <meta itemProp="ratingCount" content={String(fragrance.rating_count ?? 0)} />
+                  </>
+                )}
+              </div>
+
+              {/* Dual-source metric bars */}
+              {heroMetrics.length > 0 && (
+                <div className={styles.metricsList}>
+                  {heroMetrics.map(m => (
+                    <div key={m.key} className={styles.metricRow}>
+                      <span className={styles.metricLabel}>{m.label}</span>
+                      <div className={styles.metricBars}>
+                        <div className={`${styles.metricTrack} ${!m.perfyAvg ? styles.metricTrackDim : ''}`} title={m.perfyAvg ? `Perfy community` : 'No Perfy ratings yet'}>
+                          <div className={styles.metricFillPerfy} style={{ width: m.perfyAvg ? `${(m.perfyAvg / 5) * 100}%` : '0%' }} />
+                        </div>
+                        <div className={`${styles.metricTrack} ${!m.redditAvg ? styles.metricTrackDim : ''}`} title={m.redditAvg ? 'Reddit community' : 'No Reddit data'}>
+                          <div className={styles.metricFillReddit} style={{ width: m.redditAvg ? `${(m.redditAvg / 5) * 100}%` : '0%' }} />
+                        </div>
+                      </div>
+                      <span className={styles.metricConsensus}>{m.consensusLabel}</span>
+                    </div>
+                  ))}
+                  <div className={styles.metricLegend}>
+                    <span className={styles.legDot} />Perfy
+                    {redditStats && <><span className={`${styles.legDot} ${styles.legDotReddit}`} />Reddit</>}
+                  </div>
                 </div>
               )}
             </div>
