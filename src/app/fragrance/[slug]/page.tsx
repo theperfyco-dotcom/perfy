@@ -16,6 +16,7 @@ import CollectionButton from '@/components/CollectionButton'
 import ClassificationVoting from '@/components/ClassificationVoting'
 import StatementsSection from '@/components/StatementsSection'
 import ScentFamily from '@/components/ScentFamily'
+import YouTubeReviews from '@/components/YouTubeReviews'
 import {
   getFragranceBySlug, getDupes, getRedditStats, getClassificationStats, getStatements,
   type RedditStats,
@@ -490,6 +491,15 @@ export default async function FragrancePage({ params }: Props) {
         {/* ── Community statements ─────────────────── */}
         <section className={styles.statementsSection} aria-labelledby="statements-heading">
           <StatementsSection fragranceId={fragrance.id} initialStatements={statements} />
+        </section>
+
+        {/* ── YouTube reviews ──────────────────────────── */}
+        <section className={styles.youtubeSection} aria-labelledby="yt-heading">
+          <YouTubeReviews
+            fragranceId={fragrance.id}
+            fragranceName={fragrance.name}
+            brandName={fragrance.brand.name}
+          />
         </section>
 
         {/* ── Where to buy ─────────────────────────────── */}
