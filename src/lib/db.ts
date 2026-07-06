@@ -524,6 +524,32 @@ export async function getStatements(fragranceId: string, limit = 8): Promise<Sta
   }))
 }
 
+// ── Performance votes (Parfumo-style attribute voting) ───────────────────────
+
+export interface PerfStats {
+  longevity:   number[]  // [v1_count, v2_count, v3_count, v4_count, v5_count]
+  sillage:     number[]
+  gender:      number[]
+  price_value: number[]
+}
+
+export async function getPerfStats(fragranceId: string): Promise<PerfStats> {
+  const empty = (): number[] => [0, 0, 0, 0, 0]
+  const result: PerfStats = { longevity: empty(), sillage: empty(), gender: empty(), price_value: empty() }
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('fragrance_perf_votes')
+      .select('attribute, value')
+      .eq('fragrance_id', fragranceId)
+    for (const row of (data ?? [])) {
+      const attr = row.attribute as keyof PerfStats
+      if (result[attr] && row.value >= 1 && row.value <= 5) result[attr][row.value - 1]++
+    }
+  } catch { /* table may not exist yet */ }
+  return result
+}
+
 function cosineSim(a: Record<string, number>, b: Record<string, number>): number {
   let dot = 0, magA = 0, magB = 0
   const keys = new Set([...Object.keys(a), ...Object.keys(b)])

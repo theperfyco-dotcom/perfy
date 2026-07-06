@@ -11,14 +11,14 @@ import AccordStrip from '@/components/AccordStrip'
 import AccordBubbles from '@/components/AccordBubbles'
 import BuyPanel from '@/components/BuyPanel'
 import FragranceActions from '@/components/FragranceActions'
-import VoteCard from '@/components/VoteCard'
+import PerformanceRating from '@/components/PerformanceRating'
 import CollectionButton from '@/components/CollectionButton'
 import ClassificationVoting from '@/components/ClassificationVoting'
 import StatementsSection from '@/components/StatementsSection'
 import ScentFamily from '@/components/ScentFamily'
 import YouTubeReviews from '@/components/YouTubeReviews'
 import {
-  getFragranceBySlug, getDupes, getRedditStats, getClassificationStats, getStatements,
+  getFragranceBySlug, getDupes, getRedditStats, getClassificationStats, getStatements, getPerfStats,
   type RedditStats,
 } from '@/lib/db'
 import styles from './page.module.css'
@@ -151,11 +151,12 @@ export default async function FragrancePage({ params }: Props) {
   const fragrance = await getFragranceBySlug(slug)
   if (!fragrance) notFound()
 
-  const [dupes, redditStats, classStats, statements] = await Promise.all([
+  const [dupes, redditStats, classStats, statements, perfStats] = await Promise.all([
     getDupes(fragrance.id, 6),
     getRedditStats(fragrance.id),
     getClassificationStats(fragrance.id),
     getStatements(fragrance.id, 8),
+    getPerfStats(fragrance.id),
   ])
 
   const allNotes = fragrance.flat_notes?.length
@@ -484,8 +485,8 @@ export default async function FragrancePage({ params }: Props) {
         {/* ── Rate this ─────────────────────────────── */}
         <section className={styles.voteSection} aria-labelledby="vote-heading">
           <h2 className={styles.sectionTitle} id="vote-heading">Rate <em>{fragrance.name}</em></h2>
-          <p className={styles.voteText}>Score it, vote on longevity, sillage, gender and value — your ratings shape the community profile above.</p>
-          <VoteCard fragranceId={fragrance.id} fragranceName={fragrance.name} scaleDists={fragrance.scale_dists} />
+          <p className={styles.voteText}>Tap a dot to vote on each attribute — no account needed.</p>
+          <PerformanceRating fragranceId={fragrance.id} initialStats={perfStats} />
         </section>
 
         {/* ── Community statements ─────────────────── */}

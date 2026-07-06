@@ -1,0 +1,195 @@
+.root { width: 100%; }
+
+/* ── 2×2 grid ─────────────────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.cardIcon { color: var(--accent); flex-shrink: 0; }
+
+.cardLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  flex: 1;
+}
+
+.voteCount {
+  font-size: 10px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Dot scale ────────────────────────────────────────────────────────────── */
+.scaleWrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.noVote {
+  font-size: 10px;
+  color: var(--subtle);
+  white-space: nowrap;
+  padding-top: 5px;
+  flex-shrink: 0;
+}
+
+.dots {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  flex: 1;
+}
+
+/* Horizontal connecting line behind the dots */
+.dotLine {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  height: 2px;
+  background: var(--border);
+  pointer-events: none;
+}
+
+/* Individual dot button */
+.dot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+  transition: opacity .1s;
+}
+.dot:disabled { cursor: wait; opacity: 0.6; }
+
+/* The visual circle */
+.dotCircle {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  transition: border-color .15s, background .15s, transform .12s;
+}
+
+.dot:hover .dotCircle {
+  border-color: var(--accent);
+  transform: scale(1.15);
+}
+
+.dotActive .dotCircle {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* Label below each dot */
+.dotLabel {
+  font-size: 9px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.3;
+  max-width: 44px;
+}
+
+.dotActive .dotLabel {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Distribution histogram ───────────────────────────────────────────────── */
+.dist {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.distEmpty {
+  font-size: 11px;
+  color: var(--subtle);
+  margin: 0;
+  padding: 4px 0;
+}
+
+.distRow {
+  display: grid;
+  grid-template-columns: 100px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+}
+
+.distLabel {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.distTrack {
+  height: 6px;
+  background: var(--bg-warm);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.distFill {
+  height: 100%;
+  background: var(--border);
+  border-radius: 3px;
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+
+/* Peak bar (most votes) */
+.distPeak .distFill  { background: var(--text); }
+.distPeak .distLabel { color: var(--text); font-weight: 600; }
+
+/* User's voted row */
+.distUser .distFill  { background: var(--accent); }
+.distUser .distLabel { color: var(--accent); }
+.distUser .distCount { color: var(--accent); font-weight: 600; }
+
+.distCount {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr; }
+  .distRow { grid-template-columns: 90px 1fr 24px; }
+}
