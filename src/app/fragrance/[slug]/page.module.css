@@ -43,14 +43,14 @@
 .accordBubbleSection { /* no extra margin needed — gap handles it */ }
 .sectionLabel { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--subtle); display: block; margin-bottom: 12px; }
 
-/* ── Signal block (dual scores + metric bars) ── */
-.signalBlock {
+/* ── Score block (community score in hero) ── */
+.scoreBlock {
   border-top: 1px solid var(--border);
   padding: 18px 0 20px;
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 4px;
 }
 
 /* Scores row */
@@ -119,7 +119,7 @@
 }
 .communityGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr 280px;
+  grid-template-columns: 1fr 1fr;
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
@@ -196,9 +196,10 @@
 .pyramidNote { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 4px 10px; transition: all .12s; }
 .pyramidNote:hover { color: var(--text); border-color: var(--border-dark); background: var(--bg-warm); }
 
-/* ── Rate this — after seeing community context ── */
-.voteSection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
-.voteText { font-size: 14px; color: var(--muted); margin-top: -16px; margin-bottom: 24px; line-height: 1.6; max-width: 640px; }
+/* ── Performance rating section (right after hero) ── */
+.perfSection { max-width: 1200px; margin: 0 auto; padding: 48px 32px 0; border-top: 1px solid var(--border); }
+.voteText { font-size: 14px; color: var(--muted); margin-top: -16px; margin-bottom: 28px; line-height: 1.6; max-width: 640px; }
+.baselineNote { color: var(--subtle); }
 
 /* ── Statements ── */
 .statementsSection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
@@ -228,8 +229,6 @@
 /* ── Responsive ── */
 @media (max-width: 1100px) {
   .hero { grid-template-columns: 300px 1fr; gap: 40px; }
-  .communityGrid { grid-template-columns: 1fr 1fr; }
-  .communityGrid > .communityPanel:last-child { grid-column: 1 / -1; }
   .dupeGrid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 768px) {
@@ -238,12 +237,11 @@
   .breadcrumb { padding: 11px 16px; }
   .communitySection,
   .notesSection,
-  .voteSection,
+  .perfSection,
   .statementsSection,
   .buySection,
   .dupesSection { padding-left: 16px; padding-right: 16px; }
   .communityGrid { grid-template-columns: 1fr; }
-  .communityGrid > .communityPanel:last-child { grid-column: auto; }
   .dupeGrid { grid-template-columns: repeat(2, 1fr); }
   .scoreNum { font-size: 44px; }
 }

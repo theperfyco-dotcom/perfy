@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import {
-  Tree, Drop, Flower, CaretRight, ArrowRight, RedditLogo, TrendUp,
+  Tree, Drop, Flower, CaretRight, ArrowRight,
 } from '@phosphor-icons/react/dist/ssr'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
@@ -19,7 +19,7 @@ import ScentFamily from '@/components/ScentFamily'
 import YouTubeReviews from '@/components/YouTubeReviews'
 import {
   getFragranceBySlug, getDupes, getRedditStats, getClassificationStats, getStatements, getPerfStats,
-  type RedditStats,
+  type RedditStats, type PerfStats,
 } from '@/lib/db'
 import styles from './page.module.css'
 
@@ -38,6 +38,41 @@ type ScaleKey = typeof SCALES[number]['key']
 function scaleAvgLabel(options: readonly string[], avg: number | undefined): string | null {
   if (!avg) return null
   return options[Math.round(avg) - 1] ?? null
+}
+
+// ── Reddit → performance baseline ────────────────────────────────────────────
+// Converts a Reddit average (1–5) into a ~50-vote Gaussian distribution so
+// the PerformanceRating cards have a visual starting point before Perfy votes
+// accumulate. Attributes with real Perfy votes are never overridden.
+function redditBaseline(avg: number, scale = 50): number[] {
+  if (!avg || avg < 1 || avg > 5) return [0, 0, 0, 0, 0]
+  const center  = avg - 1
+  const weights = [0, 1, 2, 3, 4].map(i => Math.exp(-0.6 * (i - center) ** 2))
+  const wSum    = weights.reduce((a, b) => a + b, 0)
+  const counts  = [0, 0, 0, 0, 0]
+  let used = 0
+  for (let i = 0; i < 4; i++) { counts[i] = Math.round(weights[i] / wSum * scale); used += counts[i] }
+  counts[4] = Math.max(0, scale - used)
+  return counts
+}
+
+function mergeWithReddit(perf: PerfStats, reddit: RedditStats | null): { stats: PerfStats; hasBaseline: boolean } {
+  let hasBaseline = false
+  const seed = (counts: number[], avg: number | null | undefined) => {
+    if (counts.some(v => v > 0)) return counts
+    if (!avg) return counts
+    hasBaseline = true
+    return redditBaseline(avg, 50)
+  }
+  return {
+    hasBaseline,
+    stats: {
+      longevity:   seed(perf.longevity,   reddit?.avg_longevity),
+      sillage:     seed(perf.sillage,     reddit?.avg_sillage),
+      gender:      seed(perf.gender,      reddit?.avg_gender),
+      price_value: seed(perf.price_value, reddit?.avg_price_value),
+    },
+  }
 }
 
 // ── Distribution bar display ─────────────────────────────────────────────────
@@ -77,46 +112,6 @@ function ScaleDisplay({ label, avg, dist, options }: {
   )
 }
 
-// ── Compact Reddit card ───────────────────────────────────────────────────────
-function RedditCard({ stats }: { stats: RedditStats }) {
-  const sentPct = stats.avg_sentiment !== null ? Math.round((stats.avg_sentiment + 1) * 50) : null
-  const rising  = stats.mentions_this_month > stats.mentions_last_month
-
-  return (
-    <div className={styles.redditCard}>
-      <div className={styles.redditCardHead}>
-        <RedditLogo size={16} weight="fill" className={styles.redditIcon} aria-hidden="true" />
-        <span className={styles.redditCardTitle}>Reddit signal</span>
-        {rising && (
-          <span className={styles.redditRising}>
-            <TrendUp size={10} weight="bold" /> trending
-          </span>
-        )}
-      </div>
-
-      <div className={styles.redditCardBody}>
-        {stats.avg_score !== null && (
-          <div className={styles.redditScoreRow}>
-            <span className={styles.redditScoreNum}>{stats.avg_score.toFixed(1)}</span>
-            <span className={styles.redditScoreMax}>/10</span>
-            <span className={styles.redditScoreLabel}>Reddit score</span>
-          </div>
-        )}
-        {sentPct !== null && (
-          <div className={styles.redditSent}>
-            <div className={styles.redditSentBar}>
-              <div className={styles.redditSentFill} style={{ width: `${sentPct}%` }} />
-            </div>
-            <span className={styles.redditSentPct}>{sentPct}% positive</span>
-          </div>
-        )}
-        <span className={styles.redditMentions}>{stats.mention_count} posts analysed</span>
-      </div>
-
-      <p className={styles.redditCardFooter}>r/fragrance · r/fragranceclones</p>
-    </div>
-  )
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
@@ -159,6 +154,8 @@ export default async function FragrancePage({ params }: Props) {
     getPerfStats(fragrance.id),
   ])
 
+  const { stats: mergedPerfStats, hasBaseline } = mergeWithReddit(perfStats, redditStats)
+
   const allNotes = fragrance.flat_notes?.length
     ? fragrance.flat_notes
     : [...(fragrance.top_notes ?? []), ...(fragrance.heart_notes ?? []), ...(fragrance.base_notes ?? [])]
@@ -182,17 +179,6 @@ export default async function FragrancePage({ params }: Props) {
       },
     } : {}),
   }
-
-  // Pre-compute metric rows for hero signal block
-  const HERO_LABELS: Record<string, string> = { price_value: 'Value' }
-  const heroMetrics = SCALES.map(({ key, label, options }) => {
-    const perfyAvg  = fragrance[`avg_${key}` as `avg_${ScaleKey}`] as number | undefined
-    const redditAvg = redditStats?.[`avg_${key}` as keyof RedditStats] as number | null | undefined
-    if (!perfyAvg && !redditAvg) return null
-    const consensusAvg   = perfyAvg ?? (redditAvg ?? 0)
-    const consensusLabel = scaleAvgLabel(options, consensusAvg)
-    return { key, label: HERO_LABELS[key] ?? label, perfyAvg: perfyAvg ?? null, redditAvg: redditAvg ?? null, consensusLabel }
-  }).filter(Boolean) as { key: string; label: string; perfyAvg: number | null; redditAvg: number | null; consensusLabel: string | null }[]
 
   return (
     <>
@@ -271,81 +257,25 @@ export default async function FragrancePage({ params }: Props) {
               </div>
             )}
 
-            {/* ── Signal block: dual scores + dual-source metrics ── */}
-            <div className={styles.signalBlock} itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
-              {/* Scores row */}
-              <div className={styles.scoresRow}>
-                {/* Perfy score */}
-                <div className={styles.scoreColPerfy}>
-                  <div className={styles.scorePair}>
-                    {fragrance.avg_score
-                      ? <><span className={styles.scoreNum} itemProp="ratingValue">{fragrance.avg_score.toFixed(1)}</span><span className={styles.scoreMax}>/10</span></>
-                      : <span className={styles.scoreDash}>—</span>
-                    }
-                  </div>
-                  <span className={styles.scoreSublabel}>
-                    {fragrance.rating_count
-                      ? `${fragrance.rating_count.toLocaleString()} ratings`
-                      : 'No ratings yet'
-                    }
-                  </span>
-                </div>
-
-                {redditStats && (
-                  <>
-                    <div className={styles.scoreDivider} aria-hidden="true" />
-                    <div className={styles.scoreColReddit}>
-                      <div className={styles.redditScoreHead}>
-                        <RedditLogo size={12} weight="fill" className={styles.redditIconSmall} aria-hidden="true" />
-                        <span className={styles.redditSourceLabel}>Reddit</span>
-                        {redditStats.mentions_this_month > redditStats.mentions_last_month && (
-                          <span className={styles.redditRisingMini}>
-                            <TrendUp size={9} weight="bold" />
-                          </span>
-                        )}
-                      </div>
-                      <div className={styles.scorePair}>
-                        {redditStats.avg_score !== null
-                          ? <><span className={styles.scoreNumReddit}>{redditStats.avg_score.toFixed(1)}</span><span className={styles.scoreMaxSm}>/10</span></>
-                          : <span className={styles.scoreDash}>—</span>
-                        }
-                      </div>
-                      <span className={styles.scoreSublabel}>{redditStats.mention_count.toLocaleString()} posts</span>
-                    </div>
-                  </>
-                )}
-
-                {fragrance.avg_score && (
-                  <>
-                    <meta itemProp="bestRating" content="10" />
-                    <meta itemProp="worstRating" content="1" />
-                    <meta itemProp="ratingCount" content={String(fragrance.rating_count ?? 0)} />
-                  </>
-                )}
+            {/* ── Community score ── */}
+            <div className={styles.scoreBlock} itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
+              <div className={styles.scorePair}>
+                {fragrance.avg_score
+                  ? <><span className={styles.scoreNum} itemProp="ratingValue">{fragrance.avg_score.toFixed(1)}</span><span className={styles.scoreMax}>/10</span></>
+                  : <span className={styles.scoreDash}>—</span>
+                }
               </div>
-
-              {/* Dual-source metric bars */}
-              {heroMetrics.length > 0 && (
-                <div className={styles.metricsList}>
-                  {heroMetrics.map(m => (
-                    <div key={m.key} className={styles.metricRow}>
-                      <span className={styles.metricLabel}>{m.label}</span>
-                      <div className={styles.metricBars}>
-                        <div className={`${styles.metricTrack} ${!m.perfyAvg ? styles.metricTrackDim : ''}`} title={m.perfyAvg ? `Perfy community` : 'No Perfy ratings yet'}>
-                          <div className={styles.metricFillPerfy} style={{ width: m.perfyAvg ? `${(m.perfyAvg / 5) * 100}%` : '0%' }} />
-                        </div>
-                        <div className={`${styles.metricTrack} ${!m.redditAvg ? styles.metricTrackDim : ''}`} title={m.redditAvg ? 'Reddit community' : 'No Reddit data'}>
-                          <div className={styles.metricFillReddit} style={{ width: m.redditAvg ? `${(m.redditAvg / 5) * 100}%` : '0%' }} />
-                        </div>
-                      </div>
-                      <span className={styles.metricConsensus}>{m.consensusLabel}</span>
-                    </div>
-                  ))}
-                  <div className={styles.metricLegend}>
-                    <span className={styles.legDot} />Perfy
-                    {redditStats && <><span className={`${styles.legDot} ${styles.legDotReddit}`} />Reddit</>}
-                  </div>
-                </div>
+              <span className={styles.scoreSublabel}>
+                {fragrance.rating_count
+                  ? `${fragrance.rating_count.toLocaleString()} community ratings`
+                  : 'No ratings yet'}
+              </span>
+              {fragrance.avg_score && (
+                <>
+                  <meta itemProp="bestRating"   content="10" />
+                  <meta itemProp="worstRating"  content="1" />
+                  <meta itemProp="ratingCount"  content={String(fragrance.rating_count ?? 0)} />
+                </>
               )}
             </div>
 
@@ -388,6 +318,13 @@ export default async function FragrancePage({ params }: Props) {
             />
           </div>
 
+        </section>
+
+        {/* ── Performance rating — immediately after hero ── */}
+        <section className={styles.perfSection} aria-labelledby="perf-heading">
+          <h2 className={styles.sectionTitle} id="perf-heading">Rate <em>{fragrance.name}</em></h2>
+          <p className={styles.voteText}>Tap a dot to vote — no account needed.{hasBaseline && <span className={styles.baselineNote}> Seeded from community reviews.</span>}</p>
+          <PerformanceRating fragranceId={fragrance.id} initialStats={mergedPerfStats} />
         </section>
 
         {/* ── Community Signal — unified section ── */}
@@ -433,14 +370,6 @@ export default async function FragrancePage({ params }: Props) {
               <ClassificationVoting fragranceId={fragrance.id} initialStats={classStats} />
             </div>
 
-            {/* Panel 3: Reddit */}
-            {redditStats && (
-              <div className={styles.communityPanel}>
-                <div className={styles.panelLabel}>Reddit</div>
-                <RedditCard stats={redditStats} />
-              </div>
-            )}
-
           </div>
         </section>
 
@@ -481,13 +410,6 @@ export default async function FragrancePage({ params }: Props) {
             </div>
           </section>
         )}
-
-        {/* ── Rate this ─────────────────────────────── */}
-        <section className={styles.voteSection} aria-labelledby="vote-heading">
-          <h2 className={styles.sectionTitle} id="vote-heading">Rate <em>{fragrance.name}</em></h2>
-          <p className={styles.voteText}>Tap a dot to vote on each attribute — no account needed.</p>
-          <PerformanceRating fragranceId={fragrance.id} initialStats={perfStats} />
-        </section>
 
         {/* ── Community statements ─────────────────── */}
         <section className={styles.statementsSection} aria-labelledby="statements-heading">
