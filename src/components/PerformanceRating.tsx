@@ -141,13 +141,11 @@ export default function PerformanceRating({ fragranceId, initialStats }: Props) 
                 </div>
               )}
 
-              {/* Community breakdown */}
-              <div className={styles.dist}>
-                <div className={styles.distHeader}>Community breakdown</div>
-                {total === 0 ? (
-                  <p className={styles.distEmpty}>No votes yet — be the first above</p>
-                ) : (
-                  options.map((opt, i) => {
+              {/* Community breakdown — only shown when there's meaningful data */}
+              {total >= 5 ? (
+                <div className={styles.dist}>
+                  <div className={styles.distHeader}>Community breakdown</div>
+                  {options.map((opt, i) => {
                     const count  = counts[i] ?? 0
                     const barPct = max > 0 ? (count / max) * 100 : 0
                     const pct    = total > 0 ? Math.round((count / total) * 100) : 0
@@ -168,9 +166,15 @@ export default function PerformanceRating({ fragranceId, initialStats }: Props) 
                         <span className={styles.distPct}>{pct}%</span>
                       </div>
                     )
-                  })
-                )}
-              </div>
+                  })}
+                </div>
+              ) : total > 0 ? (
+                <p className={styles.distSparse}>
+                  {total} vote{total === 1 ? '' : 's'} so far — breakdown shows once more people have rated
+                </p>
+              ) : (
+                <p className={styles.distSparse}>No community data yet — cast the first vote above</p>
+              )}
 
             </div>
           )

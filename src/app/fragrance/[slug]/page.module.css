@@ -201,6 +201,9 @@
 .voteText { font-size: 14px; color: var(--muted); margin-top: -16px; margin-bottom: 28px; line-height: 1.6; max-width: 640px; }
 .baselineNote { color: var(--subtle); }
 
+/* ── Classification ── */
+.classSection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
+
 /* ── Statements ── */
 .statementsSection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
 
@@ -235,9 +238,9 @@
   .hero { grid-template-columns: 1fr; padding: 24px 16px 0; gap: 24px; }
   .imgWrap { position: static; max-width: 280px; }
   .breadcrumb { padding: 11px 16px; }
-  .communitySection,
   .notesSection,
   .perfSection,
+  .classSection,
   .statementsSection,
   .buySection,
   .dupesSection { padding-left: 16px; padding-right: 16px; }

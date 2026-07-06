@@ -168,6 +168,15 @@
   font-style: italic;
 }
 
+.distSparse {
+  font-size: 12px;
+  color: var(--subtle);
+  margin: 0;
+  padding: 6px 0 2px;
+  font-style: italic;
+  border-top: 1px solid var(--border);
+}
+
 .distRow {
   display: grid;
   grid-template-columns: 1fr auto 34px;

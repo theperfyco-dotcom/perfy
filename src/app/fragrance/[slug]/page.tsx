@@ -242,6 +242,20 @@ export default async function FragrancePage({ params }: Props) {
               ].filter(Boolean).join(' · ')}
             </p>
 
+            {/* ── Community score — key signal, high up ── */}
+            {fragrance.avg_score ? (
+              <div className={styles.scoreBlock} itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
+                <div className={styles.scorePair}>
+                  <span className={styles.scoreNum} itemProp="ratingValue">{fragrance.avg_score.toFixed(1)}</span>
+                  <span className={styles.scoreMax}>/10</span>
+                </div>
+                <span className={styles.scoreSublabel}>{fragrance.rating_count?.toLocaleString()} community ratings</span>
+                <meta itemProp="bestRating"  content="10" />
+                <meta itemProp="worstRating" content="1" />
+                <meta itemProp="ratingCount" content={String(fragrance.rating_count ?? 0)} />
+              </div>
+            ) : null}
+
             {/* ── Scent identity — family pills + accord bubbles ── */}
             {(fragrance.fw_classification || sortedAccords.length > 0) && (
               <div className={styles.scentIdentity}>
@@ -257,29 +271,15 @@ export default async function FragrancePage({ params }: Props) {
               </div>
             )}
 
-            {/* ── Community score ── */}
-            <div className={styles.scoreBlock} itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
-              <div className={styles.scorePair}>
-                {fragrance.avg_score
-                  ? <><span className={styles.scoreNum} itemProp="ratingValue">{fragrance.avg_score.toFixed(1)}</span><span className={styles.scoreMax}>/10</span></>
-                  : <span className={styles.scoreDash}>—</span>
-                }
-              </div>
-              <span className={styles.scoreSublabel}>
-                {fragrance.rating_count
-                  ? `${fragrance.rating_count.toLocaleString()} community ratings`
-                  : 'No ratings yet'}
-              </span>
-              {fragrance.avg_score && (
-                <>
-                  <meta itemProp="bestRating"   content="10" />
-                  <meta itemProp="worstRating"  content="1" />
-                  <meta itemProp="ratingCount"  content={String(fragrance.rating_count ?? 0)} />
-                </>
-              )}
-            </div>
+            {/* ── Collection + actions ── */}
+            <CollectionButton fragranceId={fragrance.id} />
+            <FragranceActions
+              fragranceId={fragrance.id}
+              fragranceName={fragrance.name}
+              brandName={fragrance.brand.name}
+            />
 
-            {/* ── Metadata ── */}
+            {/* ── Details (perfumer / origin / concepts) — lowest priority ── */}
             {(fragrance.perfumer || fragrance.origin || (fragrance.concepts && fragrance.concepts.length > 0)) && (
               <div className={styles.metaGrid}>
                 {fragrance.perfumer && (
@@ -306,71 +306,18 @@ export default async function FragrancePage({ params }: Props) {
                 )}
               </div>
             )}
-
-            {/* ── Collection buttons ── */}
-            <CollectionButton fragranceId={fragrance.id} />
-
-            {/* ── Share / wishlist actions ── */}
-            <FragranceActions
-              fragranceId={fragrance.id}
-              fragranceName={fragrance.name}
-              brandName={fragrance.brand.name}
-            />
           </div>
 
         </section>
 
-        {/* ── Performance rating — immediately after hero ── */}
+        {/* ── Community ratings ── */}
         <section className={styles.perfSection} aria-labelledby="perf-heading">
-          <h2 className={styles.sectionTitle} id="perf-heading">Rate <em>{fragrance.name}</em></h2>
-          <p className={styles.voteText}>Tap a dot to vote — no account needed.{hasBaseline && <span className={styles.baselineNote}> Seeded from community reviews.</span>}</p>
+          <h2 className={styles.sectionTitle} id="perf-heading">Community <em>ratings</em></h2>
+          <p className={styles.voteText}>
+            Rate each attribute — no account needed.
+            {hasBaseline && <span className={styles.baselineNote}> Seeded from community data.</span>}
+          </p>
           <PerformanceRating fragranceId={fragrance.id} initialStats={mergedPerfStats} />
-        </section>
-
-        {/* ── Community Signal — unified section ── */}
-        <section className={styles.communitySection} aria-labelledby="community-heading">
-          <h2 className={styles.sectionTitle} id="community-heading">Community <em>signal</em></h2>
-
-          <div className={styles.communityGrid}>
-
-            {/* Panel 1: Ratings */}
-            <div className={styles.communityPanel}>
-              <div className={styles.panelLabel}>Ratings</div>
-
-              {fragrance.avg_score ? (
-                <>
-                  <div className={styles.communityScore}>
-                    <span className={styles.comScoreNum}>{fragrance.avg_score.toFixed(1)}</span>
-                    <span className={styles.comScoreMax}>/10</span>
-                    <span className={styles.comScoreCount}>{fragrance.rating_count?.toLocaleString()} ratings</span>
-                  </div>
-                  <div className={styles.communityScales}>
-                    {SCALES.map(({ key, label, options }) => (
-                      <ScaleDisplay
-                        key={key}
-                        label={label}
-                        avg={fragrance[`avg_${key}` as `avg_${ScaleKey}`] as number | undefined}
-                        dist={fragrance.scale_dists?.[key as keyof typeof fragrance.scale_dists]}
-                        options={options}
-                      />
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className={styles.panelEmpty}>
-                  <p>No ratings yet</p>
-                  <p>Rate this fragrance below to be the first.</p>
-                </div>
-              )}
-            </div>
-
-            {/* Panel 2: Classification voting */}
-            <div className={styles.communityPanel}>
-              <div className={styles.panelLabel}>Classification</div>
-              <ClassificationVoting fragranceId={fragrance.id} initialStats={classStats} />
-            </div>
-
-          </div>
         </section>
 
         {/* ── Notes pyramid ─────────────────────────── */}
@@ -410,6 +357,13 @@ export default async function FragrancePage({ params }: Props) {
             </div>
           </section>
         )}
+
+        {/* ── Season / occasion / style classification ── */}
+        <section className={styles.classSection} aria-labelledby="class-heading">
+          <h2 className={styles.sectionTitle} id="class-heading">Community <em>classification</em></h2>
+          <p className={styles.voteText}>When do people wear it? How do they describe it?</p>
+          <ClassificationVoting fragranceId={fragrance.id} initialStats={classStats} />
+        </section>
 
         {/* ── Community statements ─────────────────── */}
         <section className={styles.statementsSection} aria-labelledby="statements-heading">
