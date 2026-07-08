@@ -28,23 +28,25 @@ async function run(req: NextRequest) {
   const supabase = createServiceClient()
 
   const targetId = req.nextUrl.searchParams.get('fragrance_id')
-  // Hobby plan = 10s limit, so process just 3 fragrances per cron tick
-  // (cron runs Mon 3am, hitting ~3×52 = 156/yr; a full sweep takes ~ceil(total/3) weeks)
-  const batchSize = targetId ? 1 : 3
+  // Route has maxDuration 60 (vercel.json) — 5 fragrances per tick fits
+  const batchSize = targetId ? 1 : 5
 
   const query = supabase
     .from('fragrances')
     .select('id, name, brands(name)')
-    .order('name')
     .limit(batchSize)
 
   if (targetId) {
     query.eq('id', targetId)
   } else {
+    // Only fragrances with images (proxy for "real product people actually
+    // discuss" — filters catalogue junk), ordered by id so coverage spreads
+    // across the catalogue instead of cycling the top of the alphabet.
+    query.not('image_url', 'is', null).order('id')
     const { data: recent } = await supabase
       .from('reddit_sentiments')
       .select('fragrance_id')
-      .gte('analyzed_at', new Date(Date.now() - 7 * 86400_000).toISOString())
+      .gte('analyzed_at', new Date(Date.now() - 60 * 86400_000).toISOString())
     const recentIds = [...new Set((recent ?? []).map((r: any) => r.fragrance_id))]
     if (recentIds.length) query.not('id', 'in', `(${recentIds.join(',')})`)
   }

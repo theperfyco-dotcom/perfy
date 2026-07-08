@@ -100,7 +100,7 @@ export default async function HomePage() {
             })}
 
             <div className={styles.heroStats}>
-              {[['4,000+', 'Fragrances'], ['450+', 'Brands'], ['Weekly', 'Reddit analysis']].map(([n, l]) => (
+              {[['4,000+', 'Fragrances'], ['450+', 'Brands'], ['Daily', 'Reddit analysis']].map(([n, l]) => (
                 <div key={l} className={styles.heroStat}>
                   <div className={styles.heroStatNum}>{n}</div>
                   <div className={styles.heroStatLabel}>{l}</div>

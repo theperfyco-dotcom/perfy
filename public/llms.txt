@@ -25,7 +25,7 @@ Perfy covers 4,000+ fragrances and 450+ brands, UK-focused pricing.
 
 ## Data & methodology
 
-- Reddit sentiment scores are derived from public posts, AI-analysed, updated weekly.
+- Reddit sentiment scores are derived from public posts, AI-analysed, updated daily.
 - Community votes are anonymous; one vote per attribute per session.
 - Seeded baselines are always labelled "Seeded from community data" until real
   votes take over.
