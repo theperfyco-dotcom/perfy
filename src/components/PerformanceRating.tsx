@@ -12,7 +12,6 @@ const ATTRS = [
     question: 'How long does it last?',
     Icon:     Hourglass,
     options:  ['Barely there', 'Weak', 'Moderate', 'Long-lasting', 'Eternal'],
-    short:    ['Barely', 'Weak', 'Moderate', 'Long', 'Eternal'],
   },
   {
     key:      'sillage'     as const,
@@ -20,7 +19,6 @@ const ATTRS = [
     question: 'How far does it project?',
     Icon:     Wind,
     options:  ['Skin scent', 'Close', 'Moderate', 'Strong', 'Beast mode'],
-    short:    ['Skin scent', 'Close', 'Moderate', 'Strong', 'Beast mode'],
   },
   {
     key:      'gender'      as const,
@@ -28,7 +26,6 @@ const ATTRS = [
     question: 'Who does it suit most?',
     Icon:     UsersThree,
     options:  ['All female', 'Mostly female', 'Unisex', 'Mostly male', 'All male'],
-    short:    ['Female', 'Mostly fem.', 'Unisex', 'Mostly masc.', 'Male'],
   },
   {
     key:      'price_value' as const,
@@ -36,7 +33,6 @@ const ATTRS = [
     question: 'Is it worth the money?',
     Icon:     Tag,
     options:  ['Way overpriced', 'Overpriced', 'Fair price', 'Good value', 'Great value'],
-    short:    ['Way over', 'Overpriced', 'Fair', 'Good value', 'Great value'],
   },
 ] as const
 
@@ -88,7 +84,7 @@ export default function PerformanceRating({ fragranceId, initialStats }: Props) 
   return (
     <div className={styles.root}>
       <div className={styles.grid}>
-        {ATTRS.map(({ key, label, question, Icon, options, short }) => {
+        {ATTRS.map(({ key, label, question, Icon, options }) => {
           const counts = stats[key]
           const total  = counts.reduce((a, b) => a + b, 0)
           const maxCount = total > 0 ? Math.max(...counts) : 0
@@ -110,70 +106,50 @@ export default function PerformanceRating({ fragranceId, initialStats }: Props) 
                 )}
               </div>
 
-              {/* Option buttons */}
-              <div className={styles.optRow} role="group" aria-label={`Rate ${label}`}>
+              {/* Vote rows — the bar IS the button: tap a row to vote,
+                  the fill shows where community votes land */}
+              <div className={styles.rows} role="group" aria-label={`Rate ${label}`}>
                 {options.map((opt, i) => {
                   const val    = i + 1
-                  const active = uVote === val
+                  const count  = counts[i] ?? 0
+                  const pct    = total > 0 ? Math.round((count / total) * 100) : 0
+                  const isPeak = i === peak && count > 0
+                  const isUser = uVote === val
                   return (
                     <button
                       key={opt}
-                      className={`${styles.opt} ${active ? styles.optActive : ''}`}
+                      className={`${styles.row} ${isPeak ? styles.rowPeak : ''} ${isUser ? styles.rowUser : ''}`}
                       onClick={() => vote(key, val)}
-                      aria-pressed={active}
-                      title={opt}
+                      aria-pressed={isUser}
                       disabled={pending.has(key)}
+                      title={isUser ? `Remove your "${opt}" vote` : `Vote "${opt}"`}
                     >
-                      {short[i]}
+                      <span className={styles.rowLabel}>
+                        {opt}
+                        {isUser && <span className={styles.youTag}>you</span>}
+                      </span>
+                      <span className={styles.rowTrack}>
+                        <span className={styles.rowFill} style={{ width: `${pct}%` }} />
+                      </span>
+                      <span className={styles.rowPct}>{total > 0 ? `${pct}%` : ''}</span>
                     </button>
                   )
                 })}
               </div>
 
-              {/* Voted confirmation */}
-              {uVote && (
+              {/* Status line — confirmation or prompt */}
+              {uVote ? (
                 <div className={styles.votedRow}>
                   <span className={styles.votedCheck}>✓</span>
                   <span className={styles.votedText}>You rated: <strong>{options[uVote - 1]}</strong></span>
                   <button className={styles.changeBtn} onClick={() => vote(key, uVote)}>
-                    Change
+                    Undo
                   </button>
                 </div>
-              )}
-
-              {/* Community breakdown — only shown when there's meaningful data */}
-              {total >= 5 ? (
-                <div className={styles.dist}>
-                  <div className={styles.distHeader}>Community breakdown</div>
-                  {options.map((opt, i) => {
-                    const count  = counts[i] ?? 0
-                    const pct    = total > 0 ? Math.round((count / total) * 100) : 0
-                    const barPct = pct
-                    const isPeak = i === peak && count > 0
-                    const isUser = uVote === i + 1
-                    return (
-                      <div
-                        key={opt}
-                        className={`${styles.distRow} ${isPeak ? styles.distPeak : ''} ${isUser ? styles.distUser : ''}`}
-                      >
-                        <span className={styles.distLabel}>
-                          {opt}
-                          {isUser && <span className={styles.youTag}>you</span>}
-                        </span>
-                        <div className={styles.distTrack}>
-                          <div className={styles.distFill} style={{ width: `${barPct}%` }} />
-                        </div>
-                        <span className={styles.distPct}>{pct}%</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : total > 0 ? (
-                <p className={styles.distSparse}>
-                  {total} vote{total === 1 ? '' : 's'} so far — breakdown shows once more people have rated
-                </p>
               ) : (
-                <p className={styles.distSparse}>No community data yet — cast the first vote above</p>
+                <p className={styles.hint}>
+                  {total > 0 ? 'Tap an option to add your vote' : 'No votes yet — tap an option to be first'}
+                </p>
               )}
 
             </div>

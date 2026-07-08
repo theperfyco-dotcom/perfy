@@ -267,10 +267,11 @@ export default async function FragrancePage({ params }: Props) {
               </div>
             ) : null}
 
-            {/* ── Scent identity — family pills + accord bubbles ── */}
-            {(fragrance.fw_classification || sortedAccords.length > 0) && (
+            {/* ── Scent profile — family, accords, and notes together.
+                 The single most important block: what does it smell like? ── */}
+            {(fragrance.fw_classification || sortedAccords.length > 0 || allNotes.length > 0) && (
               <div className={styles.scentIdentity}>
-                <span className={styles.sectionLabel}>Scent character</span>
+                <span className={styles.sectionLabel}>Scent profile</span>
                 {fragrance.fw_classification && (
                   <ScentFamily classification={fragrance.fw_classification} />
                 )}
@@ -279,6 +280,41 @@ export default async function FragrancePage({ params }: Props) {
                     <AccordBubbles accords={sortedAccords} />
                   </div>
                 )}
+
+                {/* Notes — tiered pyramid when known, flat list otherwise */}
+                {fragrance.top_notes?.length ? (
+                  <div className={styles.noteTiers}>
+                    {[
+                      { tier: 'Top',   icon: <Drop weight="fill" size={11} />,   notes: fragrance.top_notes },
+                      { tier: 'Heart', icon: <Flower weight="fill" size={11} />, notes: fragrance.heart_notes },
+                      { tier: 'Base',  icon: <Tree weight="fill" size={11} />,   notes: fragrance.base_notes },
+                    ].filter(t => t.notes?.length).map(({ tier, icon, notes }) => (
+                      <div key={tier} className={styles.noteTierRow}>
+                        <span className={styles.noteTierLabel}>{icon} {tier}</span>
+                        <div className={styles.notePills}>
+                          {notes?.map(n => (
+                            <Link key={n.id} href={`/note/${n.name.toLowerCase()}`} className={styles.notePill}>
+                              {n.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : allNotes.length > 0 ? (
+                  <div className={styles.noteTiers}>
+                    <div className={styles.noteTierRow}>
+                      <span className={styles.noteTierLabel}><Tree weight="fill" size={11} /> Notes</span>
+                      <div className={styles.notePills}>
+                        {allNotes.map(n => (
+                          <Link key={n.id} href={`/note/${n.name.toLowerCase()}`} className={styles.notePill}>
+                            {n.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             )}
 
@@ -330,44 +366,6 @@ export default async function FragrancePage({ params }: Props) {
           </p>
           <PerformanceRating fragranceId={fragrance.id} initialStats={mergedPerfStats} />
         </section>
-
-        {/* ── Notes pyramid ─────────────────────────── */}
-        {(fragrance.top_notes?.length || fragrance.heart_notes?.length || fragrance.base_notes?.length || allNotes.length > 0) && (
-          <section className={styles.notesSection} aria-labelledby="notes-heading">
-            <h2 className={styles.sectionTitle} id="notes-heading">Fragrance <em>notes</em></h2>
-            <div className={styles.pyramid}>
-              {fragrance.top_notes?.length ? (
-                [
-                  { tier: 'Top notes',   icon: <Drop weight="fill" size={12} />,   notes: fragrance.top_notes },
-                  { tier: 'Heart notes', icon: <Flower weight="fill" size={12} />, notes: fragrance.heart_notes },
-                  { tier: 'Base notes',  icon: <Tree weight="fill" size={12} />,   notes: fragrance.base_notes },
-                ].filter(t => t.notes?.length).map(({ tier, icon, notes }) => (
-                  <div key={tier} className={styles.pyramidTier}>
-                    <div className={styles.pyramidTierLabel}>{icon} {tier}</div>
-                    <div className={styles.pyramidNotes}>
-                      {notes?.map(n => (
-                        <Link key={n.id} href={`/note/${n.name.toLowerCase()}`} className={styles.pyramidNote}>
-                          {n.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.pyramidTier}>
-                  <div className={styles.pyramidTierLabel}><Tree weight="fill" size={12} /> Ingredients</div>
-                  <div className={styles.pyramidNotes}>
-                    {allNotes.map(n => (
-                      <Link key={n.id} href={`/note/${n.name.toLowerCase()}`} className={styles.pyramidNote}>
-                        {n.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
 
         {/* ── Season / occasion / style classification ── */}
         <section className={styles.classSection} aria-labelledby="class-heading">
