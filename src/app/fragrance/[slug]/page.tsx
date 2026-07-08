@@ -19,6 +19,7 @@ import YouTubeReviews from '@/components/YouTubeReviews'
 import FragranceFaq from '@/components/FragranceFaq'
 import {
   getFragranceBySlug, getDupes, getRedditStats, getClassificationStats, getStatements, getPerfStats,
+  getFragrancesByBrand,
   type RedditStats, type PerfStats,
 } from '@/lib/db'
 import { classifyNotes } from '@/lib/note-tiers'
@@ -147,13 +148,16 @@ export default async function FragrancePage({ params }: Props) {
   const fragrance = await getFragranceBySlug(slug)
   if (!fragrance) notFound()
 
-  const [dupes, redditStats, classStats, statements, perfStats] = await Promise.all([
+  const [dupes, redditStats, classStats, statements, perfStats, brandMates] = await Promise.all([
     getDupes(fragrance.id, 6),
     getRedditStats(fragrance.id),
     getClassificationStats(fragrance.id),
     getStatements(fragrance.id, 8),
     getPerfStats(fragrance.id),
+    getFragrancesByBrand(fragrance.brand.slug, 8),
   ])
+
+  const moreFromBrand = brandMates.filter(f => f.id !== fragrance.id).slice(0, 6)
 
   const { stats: mergedPerfStats, hasBaseline } = mergeWithReddit(perfStats, redditStats)
 
@@ -463,6 +467,35 @@ export default async function FragrancePage({ params }: Props) {
                     <div className={styles.dupeCardBrand}>{d.brand.name}</div>
                     <div className={styles.dupeCardName}>{d.name}</div>
                     {d.avg_score && <div className={styles.dupeCardScore}>{d.avg_score.toFixed(1)}<span>/10</span></div>}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── More from this brand ─────────────────── */}
+        {moreFromBrand.length >= 2 && (
+          <section className={styles.dupesSection} aria-labelledby="brand-more-heading">
+            <div className={styles.dupeSectionHead}>
+              <h2 className={styles.sectionTitle} id="brand-more-heading">More from <em>{fragrance.brand.name}</em></h2>
+              <Link href={`/brand/${fragrance.brand.slug}`} className="section-link">
+                All {fragrance.brand.name} <ArrowRight weight="bold" size={12} />
+              </Link>
+            </div>
+            <div className={styles.dupeGrid}>
+              {moreFromBrand.map(f => (
+                <Link key={f.id} href={`/fragrance/${f.slug}`} className={styles.dupeCard}>
+                  {f.image_url && (
+                    <div className={styles.dupeImgWrap}>
+                      <Image src={f.image_url} alt={f.name} fill sizes="140px" style={{ objectFit: 'contain', padding: '8px' }} />
+                    </div>
+                  )}
+                  {f.accords && f.accords.length > 0 && <AccordStrip accords={f.accords} height={4} gap={0} />}
+                  <div className={styles.dupeCardBody}>
+                    <div className={styles.dupeCardBrand}>{f.brand.name}</div>
+                    <div className={styles.dupeCardName}>{f.name}</div>
+                    {f.avg_score && <div className={styles.dupeCardScore}>{f.avg_score.toFixed(1)}<span>/10</span></div>}
                   </div>
                 </Link>
               ))}
