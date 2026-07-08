@@ -734,35 +734,69 @@ export async function getDupes(fragranceId: string, limit = 6): Promise<Array<Fr
 
   const { data: targetAccords } = await supabase
     .from('fragrance_accords')
-    .select('accord_name, percentage')
+    .select('accord_name, percentage, color_hex')
     .eq('fragrance_id', fragranceId)
   if (!targetAccords?.length) return []
+
+  // Seeded profiles have color_hex null; note-derived estimates always set it.
+  // When the source profile is seeded (high fidelity), estimated candidates get
+  // a similarity penalty — their coarse bucket profiles cosine-match too easily.
+  const sourceIsSeeded = targetAccords.some(a => a.color_hex == null)
 
   const targetVec: Record<string, number> = {}
   for (const a of targetAccords) targetVec[a.accord_name] = a.percentage
   const topNames = Object.entries(targetVec).sort((a,b) => b[1]-a[1]).slice(0,3).map(a=>a[0])
 
-  const { data: candidateRows } = await supabase
-    .from('fragrance_accords')
-    .select('fragrance_id')
-    .in('accord_name', topNames)
-    .neq('fragrance_id', fragranceId)
-  const candidateIds = [...new Set((candidateRows ?? []).map(c => c.fragrance_id))].slice(0, 150)
+  // Candidate pool: every seeded profile that shares a top accord (they're the
+  // highest-fidelity matches and there are few), plus the strongest derived
+  // expressions of those accords.
+  const [{ data: seededRows }, { data: derivedRows }] = await Promise.all([
+    supabase
+      .from('fragrance_accords')
+      .select('fragrance_id')
+      .in('accord_name', topNames)
+      .neq('fragrance_id', fragranceId)
+      .is('color_hex', null),
+    supabase
+      .from('fragrance_accords')
+      .select('fragrance_id')
+      .in('accord_name', topNames)
+      .neq('fragrance_id', fragranceId)
+      .not('color_hex', 'is', null)
+      .order('percentage', { ascending: false })
+      .limit(600),
+  ])
+  const candidateIds = [...new Set([
+    ...(seededRows ?? []).map(c => c.fragrance_id),
+    ...(derivedRows ?? []).map(c => c.fragrance_id),
+  ])].slice(0, 400)
   if (!candidateIds.length) return []
 
-  const { data: allAccords } = await supabase
-    .from('fragrance_accords')
-    .select('fragrance_id, accord_name, percentage')
-    .in('fragrance_id', candidateIds)
+  // Fetch candidate profiles in chunks — large .in() lists overflow the URL limit
+  const accordChunks = await Promise.all(
+    Array.from({ length: Math.ceil(candidateIds.length / 100) }, (_, i) =>
+      supabase
+        .from('fragrance_accords')
+        .select('fragrance_id, accord_name, percentage, color_hex')
+        .in('fragrance_id', candidateIds.slice(i * 100, i * 100 + 100))
+    )
+  )
+  const allAccords = accordChunks.flatMap(c => c.data ?? [])
 
   const vecs: Record<string, Record<string, number>> = {}
-  for (const a of allAccords ?? []) {
-    if (!vecs[a.fragrance_id]) vecs[a.fragrance_id] = {}
+  const estimated: Record<string, boolean> = {}
+  for (const a of allAccords) {
+    if (!vecs[a.fragrance_id]) { vecs[a.fragrance_id] = {}; estimated[a.fragrance_id] = true }
     vecs[a.fragrance_id][a.accord_name] = a.percentage
+    if (a.color_hex == null) estimated[a.fragrance_id] = false
   }
 
   const ranked = Object.entries(vecs)
-    .map(([id, vec]) => ({ id, sim: cosineSim(targetVec, vec) }))
+    .map(([id, vec]) => {
+      const raw = cosineSim(targetVec, vec)
+      const sim = sourceIsSeeded && estimated[id] ? raw * 0.6 : raw
+      return { id, sim }
+    })
     .sort((a, b) => b.sim - a.sim)
     .slice(0, limit)
 

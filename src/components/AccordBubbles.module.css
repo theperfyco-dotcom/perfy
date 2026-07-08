@@ -36,3 +36,11 @@
   color: var(--subtle);
   text-align: center;
 }
+
+/* Cap bubble size on small screens so a full accord set fits one or two rows
+   instead of a single orphaned bubble wrapping alone */
+@media (max-width: 480px) {
+  .bubbles { gap: 10px 12px; }
+  .bubble { max-width: 60px; max-height: 60px; }
+  .name { max-width: 60px; }
+}

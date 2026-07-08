@@ -90,4 +90,4 @@
 /* ── Responsive ──────────────────────────── */
 @media (max-width: 1024px) { .cardGrid { grid-template-columns: repeat(3, 1fr); } .hero { grid-template-columns: 1fr; gap: 48px; } }
 @media (max-width: 768px) { .cardGrid { grid-template-columns: repeat(2, 1fr); } .hero { padding: 48px 16px 40px; } .heroH1 { font-size: 40px; } .dupeBannerInner { grid-template-columns: 1fr; gap: 40px; } .dupeBanner { padding: 48px 24px; } }
-@media (max-width: 480px) { .cardGrid { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .cardGrid { grid-template-columns: repeat(2, 1fr); } }
