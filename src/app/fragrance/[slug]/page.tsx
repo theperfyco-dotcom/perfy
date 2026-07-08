@@ -16,6 +16,7 @@ import ClassificationVoting from '@/components/ClassificationVoting'
 import StatementsSection from '@/components/StatementsSection'
 import ScentFamily from '@/components/ScentFamily'
 import YouTubeReviews from '@/components/YouTubeReviews'
+import FragranceFaq from '@/components/FragranceFaq'
 import {
   getFragranceBySlug, getDupes, getRedditStats, getClassificationStats, getStatements, getPerfStats,
   type RedditStats, type PerfStats,
@@ -411,6 +412,15 @@ export default async function FragrancePage({ params }: Props) {
           fragranceId={fragrance.id}
           fragranceName={fragrance.name}
           brandName={fragrance.brand.name}
+        />
+
+        {/* ── Q&A — generated from community data, with FAQPage schema */}
+        <FragranceFaq
+          fragrance={fragrance}
+          perfStats={mergedPerfStats}
+          noteTiers={noteTiers}
+          accords={sortedAccords}
+          dupes={dupes}
         />
 
         {/* ── Where to buy ─────────────────────────────── */}
