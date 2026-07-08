@@ -74,7 +74,7 @@ export default function YouTubeGrid({ videos, fragranceName }: Props) {
     <div className={styles.root}>
       <div className={styles.header}>
         <YoutubeLogo size={22} weight="fill" className={styles.ytIcon} aria-hidden="true" />
-        <h2 className={styles.heading}>Watch <em>{fragranceName}</em> reviews</h2>
+        <h2 className={styles.heading} id="yt-heading">Watch <em>{fragranceName}</em> reviews</h2>
       </div>
       <p className={styles.sub}>Community reviews and recommendations from YouTube</p>
       <div className={styles.grid}>

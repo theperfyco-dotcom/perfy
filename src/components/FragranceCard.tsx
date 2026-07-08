@@ -15,9 +15,11 @@ const PLACEHOLDER_ICONS: Record<string, React.ReactNode> = {
 interface Props {
   fragrance: Fragrance
   rank?: number
+  redditScore?: number | null
+  redditMentions?: number
 }
 
-export default function FragranceCard({ fragrance, rank }: Props) {
+export default function FragranceCard({ fragrance, rank, redditScore, redditMentions }: Props) {
   const { slug, name, brand, accords = [], avg_score, rating_count, image_url } = fragrance
 
   return (
@@ -61,7 +63,7 @@ export default function FragranceCard({ fragrance, rank }: Props) {
           <Link href={`/fragrance/${slug}`}>{name}</Link>
         </h3>
 
-        {/* Community score */}
+        {/* Community score — Perfy ratings first, Reddit sentiment as fallback */}
         {avg_score ? (
           <div className={styles.scoreRow}>
             <span className={styles.scoreBadge} aria-label={`${avg_score.toFixed(1)} out of 10`}>
@@ -74,8 +76,20 @@ export default function FragranceCard({ fragrance, rank }: Props) {
               )}
             </div>
           </div>
+        ) : redditScore ? (
+          <div className={styles.scoreRow}>
+            <span className={styles.scoreBadge} aria-label={`${redditScore.toFixed(1)} out of 10 from Reddit reviews`}>
+              {redditScore.toFixed(1)}
+            </span>
+            <div className={styles.scoreMeta}>
+              <span className={styles.scoreLabel}>/10</span>
+              <span className={styles.ratingCount}>
+                {redditMentions ? `${redditMentions} Reddit reviews` : 'Reddit reviews'}
+              </span>
+            </div>
+          </div>
         ) : (
-          <p className={styles.noScore}>No community ratings yet</p>
+          <p className={styles.noScore}>Not yet rated</p>
         )}
 
         {/* Top accord labels */}

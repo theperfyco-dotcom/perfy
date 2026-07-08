@@ -1,0 +1,104 @@
+.main { max-width: 1200px; margin: 0 auto; padding: 48px 32px 100px; }
+
+.header { margin-bottom: 40px; }
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 400;
+  letter-spacing: -0.4px;
+  margin-bottom: 8px;
+}
+.sub { font-size: 14px; color: var(--muted); max-width: 560px; line-height: 1.6; }
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 48px;
+  align-items: start;
+}
+
+.colHeading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+.colHeading svg { color: var(--accent); }
+
+/* ── Feed ── */
+.feedList { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+.feedCard { background: var(--bg); padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+
+.feedFragrance { display: flex; flex-direction: column; gap: 1px; }
+.feedBrand { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); }
+.feedName { font-size: 13px; font-weight: 600; color: var(--text); }
+.feedFragrance:hover .feedName { text-decoration: underline; text-underline-offset: 2px; }
+
+.feedBody { font-size: 14px; color: var(--text); line-height: 1.6; margin: 0; }
+
+.feedMeta { display: flex; align-items: center; gap: 10px; }
+.tagPos, .tagNeg {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 2px;
+}
+.tagPos { color: #16a34a; background: #dcfce7; }
+.tagNeg { color: #dc2626; background: #fee2e2; }
+.feedTime { font-size: 11px; color: var(--subtle); }
+
+.feedEmpty {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-warm);
+  padding: 48px 40px;
+  text-align: center;
+}
+.feedEmpty p:first-child { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.feedEmptySub { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+
+/* ── Sidebar ── */
+.side { position: sticky; top: 80px; }
+.sideList { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+.sideRow {
+  display: grid;
+  grid-template-columns: 20px 48px 1fr;
+  gap: 12px;
+  align-items: center;
+  background: var(--bg);
+  padding: 12px 14px;
+  transition: background .12s;
+}
+.sideRow:hover { background: var(--bg-warm); }
+
+.sideRank { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--subtle); text-align: center; }
+.sideImg { position: relative; width: 48px; height: 48px; background: var(--bg-warm); border-radius: var(--radius-sm); overflow: hidden; }
+.sideInfo { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.sideBrand { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); }
+.sideName { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sideStat { font-size: 11px; color: var(--muted); }
+
+.sideMore {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.sideMore:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .columns { grid-template-columns: 1fr; gap: 40px; }
+  .side { position: static; }
+}
+@media (max-width: 640px) {
+  .main { padding: 32px 16px 100px; }
+}

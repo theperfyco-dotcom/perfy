@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import { TrendUp, Diamond, Fire, CurrencyCircleDollar, Lightning, Timer, Star } from '@phosphor-icons/react/dist/ssr'
+import Nav from '@/components/Nav'
+import Footer from '@/components/Footer'
 import styles from './page.module.css'
 
 export const revalidate = 3600
@@ -63,6 +65,8 @@ export default async function AwardsPage({
   const awards  = await getAwards(current)
 
   return (
+    <>
+    <Nav />
     <main>
       <div className={styles.header}>
         <div className={styles.headerInner}>
@@ -95,6 +99,9 @@ export default async function AwardsPage({
           <div className={styles.empty}>
             <p>No awards yet for {formatMonth(current)}.</p>
             <p className={styles.emptySub}>Awards are generated on the 1st of each month from the prior month&rsquo;s Reddit activity.</p>
+            <Link href="/trending" className="btn-primary" style={{ marginTop: 20, display: 'inline-flex' }}>
+              See what&rsquo;s trending right now
+            </Link>
           </div>
         ) : (
           <div className={styles.awardGrid}>
@@ -147,5 +154,7 @@ export default async function AwardsPage({
         </div>
       </div>
     </main>
+    <Footer />
+    </>
   )
 }

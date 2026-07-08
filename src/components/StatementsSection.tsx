@@ -61,7 +61,7 @@ export default function StatementsSection({ fragranceId, initialStatements }: Pr
 
   return (
     <div className={styles.root}>
-      <h2 className={styles.heading}>Community <em>statements</em></h2>
+      <h2 className={styles.heading} id="statements-heading">Community <em>statements</em></h2>
 
       {/* Statement list */}
       {statements.length > 0 ? (

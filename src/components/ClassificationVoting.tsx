@@ -1,6 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import {
+  FlowerTulip, Sun, Leaf, Snowflake,
+  Coffee, Briefcase, MoonStars, Lightning, Crown, Wine,
+  Drop, Sparkle, TShirt, Sneaker, Heart, Fire, Moon, Armchair,
+  type Icon,
+} from '@phosphor-icons/react'
 import type { ClassificationStats } from '@/lib/db'
 import styles from './ClassificationVoting.module.css'
 
@@ -12,9 +18,9 @@ type Season   = typeof SEASONS[number]
 type Occasion = typeof OCCASIONS[number]
 type Style    = typeof STYLES[number]
 
-const SEASON_EMOJI: Record<Season, string>   = { spring: '🌸', summer: '☀️', autumn: '🍂', winter: '❄️' }
-const OCCASION_EMOJI: Record<Occasion, string> = { daily: '☕', office: '💼', evening: '🌙', sport: '⚡', formal: '🎩', date: '💐' }
-const STYLE_EMOJI: Record<Style, string>     = { fresh: '💧', elegant: '✨', casual: '😌', sporty: '🏃', romantic: '🌹', bold: '🔥', dark: '🖤', cozy: '🍵' }
+const SEASON_ICON: Record<Season, Icon>     = { spring: FlowerTulip, summer: Sun, autumn: Leaf, winter: Snowflake }
+const OCCASION_ICON: Record<Occasion, Icon> = { daily: Coffee, office: Briefcase, evening: MoonStars, sport: Lightning, formal: Crown, date: Wine }
+const STYLE_ICON: Record<Style, Icon>       = { fresh: Drop, elegant: Sparkle, casual: TShirt, sporty: Sneaker, romantic: Heart, bold: Fire, dark: Moon, cozy: Armchair }
 
 interface Props {
   fragranceId:   string
@@ -89,15 +95,13 @@ export default function ClassificationVoting({ fragranceId, initialStats }: Prop
 
   return (
     <div className={styles.root}>
-      <h3 className={styles.heading}>What&apos;s it like?</h3>
-      <p className={styles.sub}>Add your take — community classifications help others find the right fragrance.</p>
-
       <div className={styles.group}>
         <div className={styles.groupLabel}>Season <span className={styles.voteCount}>{votes('season')} votes</span></div>
         <div className={styles.chips}>
           {SEASONS.map(s => {
             const p = pct('season', s)
             const isVoted = voted.season === s
+            const ChipIcon = SEASON_ICON[s]
             return (
               <button
                 key={s}
@@ -106,7 +110,7 @@ export default function ClassificationVoting({ fragranceId, initialStats }: Prop
                 disabled={!!voted.season}
                 style={{ '--fill': `${p}%` } as React.CSSProperties}
               >
-                <span className={styles.chipEmoji}>{SEASON_EMOJI[s]}</span>
+                <ChipIcon size={14} weight="duotone" className={styles.chipIcon} aria-hidden="true" />
                 <span className={styles.chipLabel}>{s.charAt(0).toUpperCase() + s.slice(1)}</span>
                 {p > 0 && <span className={styles.chipPct}>{p}%</span>}
               </button>
@@ -121,6 +125,7 @@ export default function ClassificationVoting({ fragranceId, initialStats }: Prop
           {OCCASIONS.map(o => {
             const p = pct('occasion', o)
             const isVoted = voted.occasion === o
+            const ChipIcon = OCCASION_ICON[o]
             return (
               <button
                 key={o}
@@ -129,7 +134,7 @@ export default function ClassificationVoting({ fragranceId, initialStats }: Prop
                 disabled={!!voted.occasion}
                 style={{ '--fill': `${p}%` } as React.CSSProperties}
               >
-                <span className={styles.chipEmoji}>{OCCASION_EMOJI[o]}</span>
+                <ChipIcon size={14} weight="duotone" className={styles.chipIcon} aria-hidden="true" />
                 <span className={styles.chipLabel}>{o.charAt(0).toUpperCase() + o.slice(1)}</span>
                 {p > 0 && <span className={styles.chipPct}>{p}%</span>}
               </button>
@@ -144,6 +149,7 @@ export default function ClassificationVoting({ fragranceId, initialStats }: Prop
           {STYLES.map(s => {
             const p = pct('style', s)
             const isVoted = voted.style === s
+            const ChipIcon = STYLE_ICON[s]
             return (
               <button
                 key={s}
@@ -152,7 +158,7 @@ export default function ClassificationVoting({ fragranceId, initialStats }: Prop
                 disabled={!!voted.style}
                 style={{ '--fill': `${p}%` } as React.CSSProperties}
               >
-                <span className={styles.chipEmoji}>{STYLE_EMOJI[s]}</span>
+                <ChipIcon size={14} weight="duotone" className={styles.chipIcon} aria-hidden="true" />
                 <span className={styles.chipLabel}>{s.charAt(0).toUpperCase() + s.slice(1)}</span>
                 {p > 0 && <span className={styles.chipPct}>{p}%</span>}
               </button>

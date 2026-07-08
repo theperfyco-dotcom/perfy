@@ -22,7 +22,7 @@ export default function HomeSearch() {
         type="search"
         value={query}
         onChange={e => setQuery(e.target.value)}
-        placeholder="Search 50,000+ fragrances…"
+        placeholder="Search 4,000+ fragrances…"
         aria-label="Search fragrances"
         className={styles.input}
       />

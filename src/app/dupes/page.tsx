@@ -5,7 +5,7 @@ import { MagnifyingGlass } from '@phosphor-icons/react/dist/ssr'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import AccordStrip from '@/components/AccordStrip'
-import { getFragrances, getDupes } from '@/lib/db'
+import { getFragrances, getDupes, getTrendingByReddit } from '@/lib/db'
 import styles from './page.module.css'
 
 export const metadata: Metadata = {
@@ -29,6 +29,9 @@ export default async function DupesPage({ searchParams }: Props) {
     sourceFragrance = fragrances[0] ?? null
     if (sourceFragrance) dupes = await getDupes(sourceFragrance.id, 8)
   }
+
+  // Landing state — offer trending fragrances as starting points
+  const starters = query ? [] : (await getTrendingByReddit(8)).filter(f => f.image_url).slice(0, 4)
 
   return (
     <>
@@ -117,14 +120,40 @@ export default async function DupesPage({ searchParams }: Props) {
           )}
 
           {!query && (
-            <div className={styles.suggestions}>
-              <p className={styles.suggestLabel}>Popular searches</p>
-              <div className={styles.suggestRow}>
-                {['Aventus', 'Baccarat Rouge 540', 'Sauvage', 'Black Opium', 'Good Girl', 'Bleu de Chanel'].map(s => (
-                  <Link key={s} href={`/dupes?search=${encodeURIComponent(s)}`} className={styles.suggestChip}>{s}</Link>
-                ))}
+            <>
+              <div className={styles.suggestions}>
+                <p className={styles.suggestLabel}>Popular searches</p>
+                <div className={styles.suggestRow}>
+                  {['Aventus', 'Baccarat Rouge 540', 'Sauvage', 'Black Opium', 'Good Girl', 'Bleu de Chanel'].map(s => (
+                    <Link key={s} href={`/dupes?search=${encodeURIComponent(s)}`} className={styles.suggestChip}>{s}</Link>
+                  ))}
+                </div>
               </div>
-            </div>
+
+              {starters.length > 0 && (
+                <div className={styles.starters}>
+                  <p className={styles.suggestLabel}>Or start from what everyone&rsquo;s talking about</p>
+                  <div className={styles.starterGrid}>
+                    {starters.map(f => (
+                      <Link key={f.id} href={`/dupes?search=${encodeURIComponent(f.name)}`} className={styles.starterCard}>
+                        <div className={styles.starterImg}>
+                          {f.image_url
+                            ? <Image src={f.image_url} alt={f.name} fill sizes="160px" style={{ objectFit: 'contain', padding: '10px' }} />
+                            : <div className={styles.dupeImgPlaceholder} />
+                          }
+                        </div>
+                        {f.accords && f.accords.length > 0 && <AccordStrip accords={f.accords} height={4} gap={0} />}
+                        <div className={styles.starterInfo}>
+                          <p className={styles.dupeBrand}>{f.brand.name}</p>
+                          <p className={styles.dupeName}>{f.name}</p>
+                          <p className={styles.starterCta}>Find dupes →</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
         </div>

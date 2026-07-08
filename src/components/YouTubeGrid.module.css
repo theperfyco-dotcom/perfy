@@ -1,3 +1,13 @@
+/* Section wrapper — owned here so YouTubeReviews can return null cleanly */
+.section {
+  max-width: 1200px;
+  margin: 56px auto 0;
+  padding: 56px 32px 0;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 768px) { .section { padding-left: 16px; padding-right: 16px; } }
+
 .root { display: flex; flex-direction: column; gap: 0; }
 
 .header {

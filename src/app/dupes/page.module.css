@@ -73,8 +73,23 @@
 }
 .suggestChip:hover { background: var(--bg-warm); }
 
+/* ── Trending starter cards (landing state) ── */
+.starters { margin-top: 48px; }
+.starterGrid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+  background: var(--border); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.starterCard { background: var(--bg); display: flex; flex-direction: column; transition: background .12s; }
+.starterCard:hover { background: var(--bg-warm); }
+.starterImg { position: relative; width: 100%; aspect-ratio: 1; background: var(--bg-warm); }
+.starterInfo { padding: 12px 14px 16px; }
+.starterCta { font-size: 11px; font-weight: 600; color: var(--text); margin-top: 6px; }
+.starterCard:hover .starterCta { text-decoration: underline; text-underline-offset: 2px; }
+
 @media (max-width: 768px) {
   .page { padding: 40px 16px 80px; }
   .heading { font-size: 30px; }
   .dupeGrid { grid-template-columns: repeat(2, 1fr); }
+  .starterGrid { grid-template-columns: repeat(2, 1fr); }
 }

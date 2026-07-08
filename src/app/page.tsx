@@ -5,13 +5,24 @@ import Footer from '@/components/Footer'
 import FragranceCard from '@/components/FragranceCard'
 import PaletteRow from '@/components/PaletteRow'
 import HomeSearch from '@/components/HomeSearch'
-import { getTopFragrances } from '@/lib/db'
+import { getTopFragrances, getTrendingByReddit, type TrendingFragrance } from '@/lib/db'
+import { getAccordColor } from '@/lib/accord-colors'
 import styles from './page.module.css'
 
 export default async function HomePage() {
-  const fragrances = await getTopFragrances(20)
-  const trending   = fragrances.slice(0, 4)
-  const palette    = fragrances.slice(0, 6)
+  // Reddit-ranked fragrances lead the page — they have real community signal
+  // (scores, mention counts, images). Alphabetical fallback only if empty.
+  const reddit = await getTrendingByReddit(12)
+  const fragrances: TrendingFragrance[] = reddit.length >= 6
+    ? reddit
+    : (await getTopFragrances(12)).map(f => ({
+        ...f, mention_count: 0, avg_reddit_score: null,
+        avg_reddit_sentiment: null, mentions_this_month: 0, mentions_last_month: 0,
+      }))
+
+  const heroList = fragrances.filter(f => f.avg_reddit_score).slice(0, 5)
+  const trending = fragrances.slice(0, 4)
+  const palette  = fragrances.filter(f => (f.accords ?? []).length > 0).slice(0, 6)
 
   return (
     <>
@@ -45,27 +56,27 @@ export default async function HomePage() {
           </div>
 
           <div className={styles.heroVisual}>
-            <div className={styles.heroVisualLabel}>Top rated this week</div>
-            {fragrances.slice(0, 5).map(f => {
+            <div className={styles.heroVisualLabel}>Most talked about on Reddit</div>
+            {heroList.map(f => {
               const total = (f.accords ?? []).reduce((s, a) => s + a.percentage, 0)
               return (
                 <Link key={f.id} href={`/fragrance/${f.slug}`} className={styles.heroPaletteRow}>
                   <div className={styles.heroSwatches} aria-hidden="true">
                     {(f.accords ?? []).map(a => (
-                      <div key={a.name} style={{ flex: a.percentage / total, background: '#C4A07A', height: '100%' }} />
+                      <div key={a.name} style={{ flex: a.percentage / total, background: a.color_hex ?? getAccordColor(a.name), height: '100%' }} />
                     ))}
                   </div>
                   <div className={styles.heroPalInfo}>
                     <div className={styles.heroPalName}>{f.name}</div>
                     <div className={styles.heroPalBrand}>{f.brand.name}</div>
                   </div>
-                  <div className={styles.heroPalScore}>{f.avg_score?.toFixed(1)}</div>
+                  <div className={styles.heroPalScore}>{(f.avg_score ?? f.avg_reddit_score)?.toFixed(1)}</div>
                 </Link>
               )
             })}
 
             <div className={styles.heroStats}>
-              {[['50k+', 'Fragrances'], ['180k', 'Members'], ['8,400', 'Dupes found']].map(([n, l]) => (
+              {[['4,000+', 'Fragrances'], ['450+', 'Brands'], ['Daily', 'Reddit analysis']].map(([n, l]) => (
                 <div key={l} className={styles.heroStat}>
                   <div className={styles.heroStatNum}>{n}</div>
                   <div className={styles.heroStatLabel}>{l}</div>
@@ -82,13 +93,17 @@ export default async function HomePage() {
               <h2 className="section-title" id="trending-heading">Trending <em>now</em></h2>
               <Link href="/trending" className="section-link">View all <ArrowRight weight="bold" size={12} /></Link>
             </div>
-            <div className="filter-row" role="group" aria-label="Filter fragrances">
-              {['All', "Men's", "Women's", 'Unisex', 'Niche', 'Under £50', 'Woody', 'Floral', 'Fresh'].map((f, i) => (
-                <button key={f} className={`filter-chip${i === 0 ? ' on' : ''}`}>{f}</button>
-              ))}
-            </div>
+            <p className={styles.trendingSub}>Ranked by Reddit discussion across r/fragrance &amp; more</p>
             <div className={styles.cardGrid}>
-              {trending.map((f, i) => <FragranceCard key={f.id} fragrance={f} rank={i + 1} />)}
+              {trending.map((f, i) => (
+                <FragranceCard
+                  key={f.id}
+                  fragrance={f}
+                  rank={i + 1}
+                  redditScore={f.avg_reddit_score}
+                  redditMentions={f.mention_count}
+                />
+              ))}
             </div>
           </div>
         </section>
@@ -104,7 +119,15 @@ export default async function HomePage() {
               <Link href="/discover" className="section-link">Explore all <ArrowRight weight="bold" size={12} /></Link>
             </div>
             <div className={styles.paletteList} role="list">
-              {palette.map((f, i) => <PaletteRow key={f.id} fragrance={f} rank={i + 1} />)}
+              {palette.map((f, i) => (
+                <PaletteRow
+                  key={f.id}
+                  fragrance={f}
+                  rank={i + 1}
+                  score={f.avg_reddit_score}
+                  countText={f.mention_count > 0 ? `${f.mention_count} Reddit reviews` : undefined}
+                />
+              ))}
             </div>
           </div>
         </section>
@@ -118,7 +141,7 @@ export default async function HomePage() {
                 Same scent.<br /><em>A fraction</em> of the cost.
               </h2>
               <p className={styles.dupeDesc}>
-                Our community has matched 8,400+ fragrance pairs by scent profile. Find what smells like your favourite — and save up to £257 a bottle.
+                Our similarity engine matches fragrances by accord profile. Find what smells like your favourite — for a fraction of the price.
               </p>
               <Link href="/dupes" className={`btn-primary ${styles.dupeBtn}`}>
                 <Lightning weight="bold" size={14} /> Find your dupe
@@ -141,8 +164,8 @@ export default async function HomePage() {
                 </div>
               </div>
               <div className={styles.dupeBarLabel}>
-                <span>Community similarity</span>
-                <strong>89% match · save £257</strong>
+                <span>Accord similarity</span>
+                <strong>89% match</strong>
               </div>
               <div className={styles.dupeBarTrack} role="progressbar" aria-valuenow={89} aria-valuemin={0} aria-valuemax={100}>
                 <div className={styles.dupeBarFill} />

@@ -83,7 +83,8 @@
 
 .chipVoted::before { display: none; }
 
-.chipEmoji { font-size: 13px; line-height: 1; }
+.chipIcon { flex-shrink: 0; color: var(--muted); }
+.chipVoted .chipIcon { color: inherit; }
 
 .chipLabel { font-size: 12px; font-weight: 600; }
 

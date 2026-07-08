@@ -91,8 +91,8 @@ export default function PerformanceRating({ fragranceId, initialStats }: Props) 
         {ATTRS.map(({ key, label, question, Icon, options, short }) => {
           const counts = stats[key]
           const total  = counts.reduce((a, b) => a + b, 0)
-          const max    = total > 0 ? Math.max(...counts) : 0
-          const peak   = max > 0 ? counts.indexOf(max) : -1
+          const maxCount = total > 0 ? Math.max(...counts) : 0
+          const peak   = maxCount > 0 ? counts.indexOf(maxCount) : -1
           const uVote  = userVotes[key]
 
           return (
@@ -147,8 +147,8 @@ export default function PerformanceRating({ fragranceId, initialStats }: Props) 
                   <div className={styles.distHeader}>Community breakdown</div>
                   {options.map((opt, i) => {
                     const count  = counts[i] ?? 0
-                    const barPct = max > 0 ? (count / max) * 100 : 0
                     const pct    = total > 0 ? Math.round((count / total) * 100) : 0
+                    const barPct = pct
                     const isPeak = i === peak && count > 0
                     const isUser = uVote === i + 1
                     return (

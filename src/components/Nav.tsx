@@ -23,8 +23,8 @@ export default function Nav() {
   return (
     <>
       <div className={styles.announce}>
-        Free UK shipping on orders over £30 —{' '}
-        <Link href="/join">Join 180,000 members</Link> rating fragrances right now
+        The community fragrance database — powered by real Reddit reviews.{' '}
+        <Link href="/trending">See what&rsquo;s trending</Link>
       </div>
 
       <nav className={styles.nav} aria-label="Main navigation">

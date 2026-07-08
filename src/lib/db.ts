@@ -524,6 +524,35 @@ export async function getStatements(fragranceId: string, limit = 8): Promise<Sta
   }))
 }
 
+export interface FeedStatement extends Statement {
+  fragrance: { slug: string; name: string; image_url: string | null; brand_name: string } | null
+}
+
+/** Recent statements across all fragrances — powers the community feed. */
+export async function getRecentStatements(limit = 20): Promise<FeedStatement[]> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return []
+  const supabase = createServiceClient()
+  const { data } = await supabase
+    .from('fragrance_statements')
+    .select(`id, body, score_scent, score_longevity, score_sillage, is_positive, created_at,
+      fragrances(slug, name, image_url, brands(name))`)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  return (data ?? []).map(s => {
+    const f = s.fragrances as unknown as { slug: string; name: string; image_url: string | null; brands: { name: string } | null } | null
+    return {
+      id:              s.id,
+      body:            s.body,
+      score_scent:     s.score_scent     ?? null,
+      score_longevity: s.score_longevity ?? null,
+      score_sillage:   s.score_sillage   ?? null,
+      is_positive:     s.is_positive     ?? null,
+      created_at:      s.created_at,
+      fragrance: f ? { slug: f.slug, name: f.name, image_url: f.image_url, brand_name: f.brands?.name ?? '' } : null,
+    }
+  })
+}
+
 // ── Performance votes (Parfumo-style attribute voting) ───────────────────────
 
 export interface PerfStats {

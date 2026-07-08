@@ -207,8 +207,6 @@
 /* ── Statements ── */
 .statementsSection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
 
-/* ── YouTube reviews ─────────────────────── */
-.youtubeSection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }
 
 /* ── Buy ─────────────────────────────────── */
 .buySection { max-width: 1200px; margin: 56px auto 0; padding: 56px 32px 0; border-top: 1px solid var(--border); }

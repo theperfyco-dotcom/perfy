@@ -64,15 +64,14 @@ function mergeWithReddit(perf: PerfStats, reddit: RedditStats | null): { stats: 
     hasBaseline = true
     return redditBaseline(avg, 50)
   }
-  return {
-    hasBaseline,
-    stats: {
-      longevity:   seed(perf.longevity,   reddit?.avg_longevity),
-      sillage:     seed(perf.sillage,     reddit?.avg_sillage),
-      gender:      seed(perf.gender,      reddit?.avg_gender),
-      price_value: seed(perf.price_value, reddit?.avg_price_value),
-    },
+  // Build stats first — seed() sets hasBaseline as a side effect
+  const stats: PerfStats = {
+    longevity:   seed(perf.longevity,   reddit?.avg_longevity),
+    sillage:     seed(perf.sillage,     reddit?.avg_sillage),
+    gender:      seed(perf.gender,      reddit?.avg_gender),
+    price_value: seed(perf.price_value, reddit?.avg_price_value),
   }
+  return { stats, hasBaseline }
 }
 
 // ── Distribution bar display ─────────────────────────────────────────────────
@@ -233,16 +232,18 @@ export default async function FragrancePage({ params }: Props) {
               {fragrance.brand.name}
             </Link>
             <h1 className={styles.name} id="frag-name" itemProp="name">{fragrance.name}</h1>
-            <p className={styles.variant}>
-              {[
+            {(() => {
+              const parts = [
                 fragrance.concentration,
                 fragrance.gender === 'masculine' ? 'For Him' : fragrance.gender === 'feminine' ? 'For Her' : fragrance.gender === 'unisex' ? 'Unisex' : null,
                 fragrance.year?.toString(),
                 fragrance.origin,
-              ].filter(Boolean).join(' · ')}
-            </p>
+              ].filter(Boolean) as string[]
+              return parts.length > 0 ? <p className={styles.variant}>{parts.join(' · ')}</p> : null
+            })()}
 
-            {/* ── Community score — key signal, high up ── */}
+            {/* ── Community score — key signal, high up.
+                 Perfy ratings first; Reddit sentiment as launch-phase fallback ── */}
             {fragrance.avg_score ? (
               <div className={styles.scoreBlock} itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
                 <div className={styles.scorePair}>
@@ -253,6 +254,16 @@ export default async function FragrancePage({ params }: Props) {
                 <meta itemProp="bestRating"  content="10" />
                 <meta itemProp="worstRating" content="1" />
                 <meta itemProp="ratingCount" content={String(fragrance.rating_count ?? 0)} />
+              </div>
+            ) : redditStats?.avg_score ? (
+              <div className={styles.scoreBlock}>
+                <div className={styles.scorePair}>
+                  <span className={styles.scoreNum}>{redditStats.avg_score.toFixed(1)}</span>
+                  <span className={styles.scoreMax}>/10</span>
+                </div>
+                <span className={styles.scoreSublabel}>
+                  {`From ${redditStats.mention_count} Reddit reviews on r/fragrance & more`}
+                </span>
               </div>
             ) : null}
 
@@ -370,19 +381,21 @@ export default async function FragrancePage({ params }: Props) {
           <StatementsSection fragranceId={fragrance.id} initialStatements={statements} />
         </section>
 
-        {/* ── YouTube reviews ──────────────────────────── */}
-        <section className={styles.youtubeSection} aria-labelledby="yt-heading">
-          <YouTubeReviews
-            fragranceId={fragrance.id}
-            fragranceName={fragrance.name}
-            brandName={fragrance.brand.name}
-          />
-        </section>
+        {/* ── YouTube reviews — section wrapper is inside YouTubeReviews (returns null when no videos) */}
+        <YouTubeReviews
+          fragranceId={fragrance.id}
+          fragranceName={fragrance.name}
+          brandName={fragrance.brand.name}
+        />
 
         {/* ── Where to buy ─────────────────────────────── */}
         <section className={styles.buySection} id="buy" aria-labelledby="buy-heading">
           <h2 className={styles.sectionTitle} id="buy-heading">Where to <em>buy</em></h2>
-          <p className={styles.buySub}>Prices tracked across authorised UK retailers</p>
+          <p className={styles.buySub}>
+            {(fragrance.prices ?? []).length > 0
+              ? 'Prices tracked across authorised UK retailers'
+              : 'Search authorised retailers and marketplaces'}
+          </p>
           <BuyPanel
             prices={fragrance.prices ?? []}
             fragranceName={fragrance.name}

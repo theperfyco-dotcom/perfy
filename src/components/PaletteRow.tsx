@@ -8,10 +8,15 @@ import styles from './PaletteRow.module.css'
 interface Props {
   fragrance: Fragrance
   rank: number
+  /** Override score display, e.g. a Reddit-derived score when no Perfy ratings exist */
+  score?: number | null
+  countText?: string
 }
 
-export default function PaletteRow({ fragrance, rank }: Props) {
+export default function PaletteRow({ fragrance, rank, score, countText }: Props) {
   const { slug, name, brand, accords = [], avg_score, rating_count } = fragrance
+  const shownScore = avg_score ?? score
+  const shownCount = countText ?? (rating_count != null ? `${rating_count.toLocaleString()} ratings` : null)
   const total = accords.reduce((s, a) => s + a.percentage, 0)
 
   return (
@@ -19,7 +24,7 @@ export default function PaletteRow({ fragrance, rank }: Props) {
       href={`/fragrance/${slug}`}
       className={styles.row}
       role="listitem"
-      aria-label={`${name} by ${brand.name} — ${accords.map(a => a.name).join(', ')} — ${avg_score}`}
+      aria-label={`${name} by ${brand.name}${accords.length ? ` — ${accords.map(a => a.name).join(', ')}` : ''}${shownScore ? ` — ${shownScore.toFixed(1)}/10` : ''}`}
     >
       <span className={styles.pos}>{rank}</span>
 
@@ -38,10 +43,12 @@ export default function PaletteRow({ fragrance, rank }: Props) {
       <div className={styles.info}>
         <span className={styles.fragName}>{name}</span>
         <span className={styles.fragBrand}>{brand.name}</span>
-        <div className={styles.scoreRow}>
-          <span className={styles.score}>{avg_score?.toFixed(1)}</span>
-          <span className={styles.count}>{rating_count?.toLocaleString()} ratings</span>
-        </div>
+        {(shownScore || shownCount) && (
+          <div className={styles.scoreRow}>
+            {shownScore && <span className={styles.score}>{shownScore.toFixed(1)}</span>}
+            {shownCount && <span className={styles.count}>{shownCount}</span>}
+          </div>
+        )}
       </div>
 
       <div className={styles.actions}>
