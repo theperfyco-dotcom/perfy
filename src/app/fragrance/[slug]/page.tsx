@@ -12,7 +12,6 @@ import AccordBubbles from '@/components/AccordBubbles'
 import BuyPanel from '@/components/BuyPanel'
 import FragranceActions from '@/components/FragranceActions'
 import PerformanceRating from '@/components/PerformanceRating'
-import CollectionButton from '@/components/CollectionButton'
 import ClassificationVoting from '@/components/ClassificationVoting'
 import StatementsSection from '@/components/StatementsSection'
 import ScentFamily from '@/components/ScentFamily'
@@ -21,6 +20,7 @@ import {
   getFragranceBySlug, getDupes, getRedditStats, getClassificationStats, getStatements, getPerfStats,
   type RedditStats, type PerfStats,
 } from '@/lib/db'
+import { classifyNotes } from '@/lib/note-tiers'
 import styles from './page.module.css'
 
 interface Props { params: Promise<{ slug: string }> }
@@ -159,6 +159,13 @@ export default async function FragrancePage({ params }: Props) {
     ? fragrance.flat_notes
     : [...(fragrance.top_notes ?? []), ...(fragrance.heart_notes ?? []), ...(fragrance.base_notes ?? [])]
 
+  // Notes hierarchy: real tier data wins; otherwise estimate from note volatility
+  const hasRealTiers = Boolean(fragrance.top_notes?.length || fragrance.heart_notes?.length || fragrance.base_notes?.length)
+  const noteTiers = hasRealTiers
+    ? { top: fragrance.top_notes ?? [], heart: fragrance.heart_notes ?? [], base: fragrance.base_notes ?? [] }
+    : classifyNotes(allNotes)
+  const tiersEstimated = !hasRealTiers && noteTiers !== null
+
   const sortedAccords = [...(fragrance.accords ?? [])].sort((a, b) => b.percentage - a.percentage)
 
   const jsonLd = {
@@ -281,18 +288,23 @@ export default async function FragrancePage({ params }: Props) {
                   </div>
                 )}
 
-                {/* Notes — tiered pyramid when known, flat list otherwise */}
-                {fragrance.top_notes?.length ? (
-                  <div className={styles.noteTiers}>
+                {/* Notes pyramid — top / middle / base hierarchy.
+                    Real tier data first; volatility-based estimate as fallback. */}
+                {noteTiers ? (
+                  <div className={styles.pyramid}>
                     {[
-                      { tier: 'Top',   icon: <Drop weight="fill" size={11} />,   notes: fragrance.top_notes },
-                      { tier: 'Heart', icon: <Flower weight="fill" size={11} />, notes: fragrance.heart_notes },
-                      { tier: 'Base',  icon: <Tree weight="fill" size={11} />,   notes: fragrance.base_notes },
-                    ].filter(t => t.notes?.length).map(({ tier, icon, notes }) => (
-                      <div key={tier} className={styles.noteTierRow}>
-                        <span className={styles.noteTierLabel}>{icon} {tier}</span>
+                      { key: 'top',   Icon: Drop,   label: 'Top notes',    hint: 'the opening',  notes: noteTiers.top },
+                      { key: 'heart', Icon: Flower, label: 'Middle notes', hint: 'the heart',    notes: noteTiers.heart },
+                      { key: 'base',  Icon: Tree,   label: 'Base notes',   hint: 'the drydown',  notes: noteTiers.base },
+                    ].filter(t => t.notes.length > 0).map(({ key, Icon, label, hint, notes }) => (
+                      <div key={key} className={`${styles.tier} ${styles[`tier_${key}`]}`}>
+                        <div className={styles.tierHead}>
+                          <Icon weight="duotone" size={13} aria-hidden="true" />
+                          <span className={styles.tierLabel}>{label}</span>
+                          <span className={styles.tierHint}>{hint}</span>
+                        </div>
                         <div className={styles.notePills}>
-                          {notes?.map(n => (
+                          {notes.map(n => (
                             <Link key={n.id} href={`/note/${n.name.toLowerCase()}`} className={styles.notePill}>
                               {n.name}
                             </Link>
@@ -300,6 +312,9 @@ export default async function FragrancePage({ params }: Props) {
                         </div>
                       </div>
                     ))}
+                    {tiersEstimated && (
+                      <p className={styles.tierNote}>Note order estimated from ingredient types</p>
+                    )}
                   </div>
                 ) : allNotes.length > 0 ? (
                   <div className={styles.noteTiers}>
@@ -318,8 +333,7 @@ export default async function FragrancePage({ params }: Props) {
               </div>
             )}
 
-            {/* ── Collection + actions ── */}
-            <CollectionButton fragranceId={fragrance.id} />
+            {/* ── Actions — single row ── */}
             <FragranceActions
               fragranceId={fragrance.id}
               fragranceName={fragrance.name}

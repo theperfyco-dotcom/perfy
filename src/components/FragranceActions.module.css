@@ -12,8 +12,9 @@
 .ratedBtn { background: var(--green) !important; }
 .ratedBtn:hover { background: #4a7d5f !important; }
 
-.wishlistedBtn { background: #FFF0F5 !important; border-color: #D4648A !important; color: #D4648A !important; }
-.wishlistedBtn:hover { background: #FFE4EF !important; }
+/* Active state for wishlist / owned toggles — quiet, on-palette */
+.activeBtn { background: var(--bg-warm) !important; border-color: var(--text) !important; color: var(--text) !important; }
+.activeBtn:hover { background: var(--bg) !important; }
 
 .actionsCta { gap: 12px; }
 .ctaRateBtn { padding: 14px 28px; font-size: 14px; }
