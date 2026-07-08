@@ -252,21 +252,17 @@ export async function getFragrances(opts: {
 
 export async function getAllFragranceSlugs(): Promise<string[]> {
   const supabase = await createClient()
-  // Supabase caps each request at 1,000 rows — page through so the sitemap
-  // covers the whole catalogue.
-  const slugs: string[] = []
+  // Supabase caps each request at 1,000 rows — count first, then fetch all
+  // pages in parallel so sitemap generation stays fast.
+  const { count } = await supabase.from('fragrances').select('*', { count: 'exact', head: true })
+  if (!count) return []
   const pageSize = 1000
-  for (let from = 0; ; from += pageSize) {
-    const { data } = await supabase
-      .from('fragrances')
-      .select('slug')
-      .order('slug')
-      .range(from, from + pageSize - 1)
-    if (!data?.length) break
-    slugs.push(...data.map(f => f.slug))
-    if (data.length < pageSize) break
-  }
-  return slugs
+  const pages = await Promise.all(
+    Array.from({ length: Math.ceil(count / pageSize) }, (_, i) =>
+      supabase.from('fragrances').select('slug').order('slug').range(i * pageSize, i * pageSize + pageSize - 1)
+    )
+  )
+  return pages.flatMap(p => (p.data ?? []).map(f => f.slug))
 }
 
 export async function getBrandBySlug(slug: string): Promise<Brand | null> {
@@ -542,14 +538,28 @@ export async function getStatements(fragranceId: string, limit = 8): Promise<Sta
 /** Slugs of fragrances that have accord data — the ones a dupe page can exist for. */
 export async function getSlugsWithAccords(): Promise<string[]> {
   const supabase = await createClient()
-  const { data: accordRows } = await supabase
-    .from('fragrance_accords')
-    .select('fragrance_id')
-    .limit(20000)
-  const ids = [...new Set((accordRows ?? []).map(r => r.fragrance_id))]
-  if (!ids.length) return []
-  const { data } = await supabase.from('fragrances').select('slug').in('id', ids)
-  return (data ?? []).map(f => f.slug)
+  // Join to the parent slug directly — no second lookup (a 500-UUID .in()
+  // filter overflows PostgREST's URL limit and fails silently).
+  const { count } = await supabase.from('fragrance_accords').select('*', { count: 'exact', head: true })
+  if (!count) return []
+  const pageSize = 1000
+  const pages = await Promise.all(
+    Array.from({ length: Math.ceil(count / pageSize) }, (_, i) =>
+      supabase
+        .from('fragrance_accords')
+        .select('fragrances(slug)')
+        .order('fragrance_id')
+        .range(i * pageSize, i * pageSize + pageSize - 1)
+    )
+  )
+  const slugs = new Set<string>()
+  for (const p of pages) {
+    for (const row of p.data ?? []) {
+      const slug = (row.fragrances as unknown as { slug: string } | null)?.slug
+      if (slug) slugs.add(slug)
+    }
+  }
+  return [...slugs]
 }
 
 export type RedditAttribute = 'avg_longevity' | 'avg_sillage' | 'avg_price_value'

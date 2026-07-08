@@ -1,6 +1,10 @@
 import type { MetadataRoute } from 'next'
 import { getAllFragranceSlugs, getAllBrandSlugs, getAllNotes, getSlugsWithAccords } from '@/lib/db'
 
+// Regenerate at most once a day; allow time for the paginated catalogue queries
+export const revalidate = 86400
+export const maxDuration = 60
+
 const BASE = 'https://perfy.io'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
