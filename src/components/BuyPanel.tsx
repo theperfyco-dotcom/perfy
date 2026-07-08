@@ -1,16 +1,11 @@
 'use client'
 import { useState } from 'react'
 import { Storefront, Bell, ArrowSquareOut, CheckCircle } from '@phosphor-icons/react'
+import { track } from '@vercel/analytics'
 import { useAuth } from '@/providers/AuthProvider'
+import { amazonSearchUrl, awinRetailerLinks } from '@/lib/affiliates'
 import type { FragrancePrice } from '@/lib/types'
 import styles from './BuyPanel.module.css'
-
-const AMAZON_TAG = process.env.NEXT_PUBLIC_AMAZON_TAG ?? ''
-
-function amazonSearchUrl(brand: string, name: string, concentration?: string) {
-  const q = [brand, name, concentration].filter(Boolean).join(' ')
-  return `https://www.amazon.co.uk/s?k=${encodeURIComponent(q)}&tag=${AMAZON_TAG}`
-}
 
 interface Props {
   prices: FragrancePrice[]
@@ -39,14 +34,21 @@ export default function BuyPanel({ prices, fragranceName, brandName, concentrati
     setTracking(true)
   }
 
+  function trackBuyClick(retailer: string) {
+    try {
+      track('buy_click', { retailer, fragrance: `${brandName} ${fragranceName}` })
+    } catch { /* analytics is best-effort */ }
+  }
+
   const amazonUrl = amazonSearchUrl(brandName, fragranceName, concentration)
+  const awinLinks = awinRetailerLinks(brandName, fragranceName)
 
   if (!prices.length) {
     return (
       <aside className={styles.panel} aria-label={`Buy ${fragranceName}`}>
         <div className={styles.head}>
           <div className={styles.headTitle}>Where to buy</div>
-          <p className={styles.noPrices}>Price tracking coming soon</p>
+          <p className={styles.noPrices}>Search authorised retailers</p>
         </div>
         <div className={styles.retailers}>
           <a
@@ -54,6 +56,7 @@ export default function BuyPanel({ prices, fragranceName, brandName, concentrati
             className={styles.retailerRow}
             rel="sponsored noopener noreferrer"
             target="_blank"
+            onClick={() => trackBuyClick('Amazon')}
             aria-label={`Search for ${fragranceName} on Amazon`}
           >
             <Storefront weight="bold" size={15} className={styles.retailerIcon} aria-hidden="true" />
@@ -65,10 +68,30 @@ export default function BuyPanel({ prices, fragranceName, brandName, concentrati
               <ArrowSquareOut size={12} className={styles.extIcon} aria-hidden="true" />
             </div>
           </a>
+          {awinLinks.map(r => (
+            <a
+              key={r.name}
+              href={r.url}
+              className={styles.retailerRow}
+              rel="sponsored noopener noreferrer"
+              target="_blank"
+              onClick={() => trackBuyClick(r.name)}
+              aria-label={`Search for ${fragranceName} at ${r.name}`}
+            >
+              <Storefront weight="bold" size={15} className={styles.retailerIcon} aria-hidden="true" />
+              <div className={styles.retailerInfo}>
+                <div className={styles.retailerName}>{r.name}</div>
+                <div className={styles.retailerNote}>{r.note}</div>
+              </div>
+              <div className={styles.retailerRight}>
+                <ArrowSquareOut size={12} className={styles.extIcon} aria-hidden="true" />
+              </div>
+            </a>
+          ))}
         </div>
         <div className={styles.foot}>
           <p className={styles.disclaimer}>
-            We earn a small commission on Amazon purchases — it keeps Perfy free.
+            We earn a small commission on purchases made through these links — it keeps Perfy free.
           </p>
         </div>
       </aside>
@@ -113,6 +136,7 @@ export default function BuyPanel({ prices, fragranceName, brandName, concentrati
               className={styles.retailerRow}
               rel="sponsored noopener noreferrer"
               target="_blank"
+              onClick={() => trackBuyClick(p.retailer.name)}
               aria-label={`Buy from ${p.retailer.name} for £${p.price}`}
             >
               <Storefront weight="bold" size={15} className={styles.retailerIcon} aria-hidden="true" />
@@ -128,12 +152,13 @@ export default function BuyPanel({ prices, fragranceName, brandName, concentrati
             </a>
           )
         })}
-        {/* Amazon as additional option */}
+        {/* Amazon + Awin retailers as additional options */}
         <a
           href={amazonUrl}
           className={`${styles.retailerRow} ${styles.amazonRow}`}
           rel="sponsored noopener noreferrer"
           target="_blank"
+          onClick={() => trackBuyClick('Amazon')}
           aria-label={`Search Amazon for ${fragranceName}`}
         >
           <Storefront weight="bold" size={15} className={styles.retailerIcon} aria-hidden="true" />
@@ -145,6 +170,26 @@ export default function BuyPanel({ prices, fragranceName, brandName, concentrati
             <ArrowSquareOut size={12} className={styles.extIcon} aria-hidden="true" />
           </div>
         </a>
+        {awinLinks.map(r => (
+          <a
+            key={r.name}
+            href={r.url}
+            className={styles.retailerRow}
+            rel="sponsored noopener noreferrer"
+            target="_blank"
+            onClick={() => trackBuyClick(r.name)}
+            aria-label={`Search for ${fragranceName} at ${r.name}`}
+          >
+            <Storefront weight="bold" size={15} className={styles.retailerIcon} aria-hidden="true" />
+            <div className={styles.retailerInfo}>
+              <div className={styles.retailerName}>{r.name}</div>
+              <div className={styles.retailerNote}>{r.note}</div>
+            </div>
+            <div className={styles.retailerRight}>
+              <ArrowSquareOut size={12} className={styles.extIcon} aria-hidden="true" />
+            </div>
+          </a>
+        ))}
       </div>
 
       <div className={styles.foot}>

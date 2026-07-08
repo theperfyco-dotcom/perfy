@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, DM_Sans } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/providers/AuthProvider'
 import AuthModal from '@/components/AuthModal'
 import './globals.css'
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthModal />
           {children}
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   )
