@@ -537,6 +537,67 @@ export async function getStatements(fragranceId: string, limit = 8): Promise<Sta
   }))
 }
 
+// ── Dupe pages & leaderboards (programmatic SEO) ─────────────────────────────
+
+/** Slugs of fragrances that have accord data — the ones a dupe page can exist for. */
+export async function getSlugsWithAccords(): Promise<string[]> {
+  const supabase = await createClient()
+  const { data: accordRows } = await supabase
+    .from('fragrance_accords')
+    .select('fragrance_id')
+    .limit(20000)
+  const ids = [...new Set((accordRows ?? []).map(r => r.fragrance_id))]
+  if (!ids.length) return []
+  const { data } = await supabase.from('fragrances').select('slug').in('id', ids)
+  return (data ?? []).map(f => f.slug)
+}
+
+export type RedditAttribute = 'avg_longevity' | 'avg_sillage' | 'avg_price_value'
+
+export interface LeaderboardEntry {
+  fragrance:     Fragrance
+  value:         number
+  mention_count: number
+  reddit_score:  number | null
+}
+
+/** Fragrances ranked by a Reddit-derived attribute (1–5 scale). */
+export async function getTopByRedditAttribute(attr: RedditAttribute, limit = 15): Promise<LeaderboardEntry[]> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return []
+  const supabase = createServiceClient()
+
+  const { data: rows } = await supabase
+    .from('fragrance_reddit_stats')
+    .select(`fragrance_id, mention_count, avg_score, ${attr}`)
+    .gte('mention_count', 2)
+    .not(attr, 'is', null)
+    .order(attr, { ascending: false })
+    .limit(limit)
+  if (!rows?.length) return []
+
+  const ids = (rows as Array<Record<string, unknown>>).map(r => r.fragrance_id as string)
+  const { data: frags } = await supabase
+    .from('fragrances')
+    .select(`id, slug, name, concentration, gender, year, description, image_url, brands(id, slug, name, country), fragrance_accords(accord_name, percentage, color_hex)`)
+    .in('id', ids)
+
+  const fragMap = new Map((frags ?? []).map(f => [f.id, mapFragrance(f as unknown as DbFrag)]))
+  const nn = (v: unknown) => v !== null && v !== undefined ? parseFloat(String(v)) : null
+
+  return (rows as Array<Record<string, unknown>>)
+    .map(r => {
+      const fragrance = fragMap.get(r.fragrance_id as string)
+      if (!fragrance) return null
+      return {
+        fragrance,
+        value:         nn(r[attr]) ?? 0,
+        mention_count: (r.mention_count as number) ?? 0,
+        reddit_score:  nn(r.avg_score),
+      }
+    })
+    .filter((e): e is LeaderboardEntry => e !== null)
+}
+
 // ── Notes (programmatic SEO pages) ────────────────────────────────────────────
 
 export interface NoteWithCount {

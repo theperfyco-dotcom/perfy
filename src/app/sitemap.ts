@@ -1,13 +1,14 @@
 import type { MetadataRoute } from 'next'
-import { getAllFragranceSlugs, getAllBrandSlugs, getAllNotes } from '@/lib/db'
+import { getAllFragranceSlugs, getAllBrandSlugs, getAllNotes, getSlugsWithAccords } from '@/lib/db'
 
 const BASE = 'https://perfy.io'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [fragranceSlugs, brandSlugs, notes] = await Promise.all([
+  const [fragranceSlugs, brandSlugs, notes, dupeSlugs] = await Promise.all([
     getAllFragranceSlugs(),
     getAllBrandSlugs(),
     getAllNotes(),
+    getSlugsWithAccords(),
   ])
 
   const statics: MetadataRoute.Sitemap = [
@@ -43,5 +44,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...statics, ...fragrances, ...brands, ...notePages]
+  const dupePages: MetadataRoute.Sitemap = dupeSlugs.map(slug => ({
+    url: `${BASE}/dupes/${slug}`,
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }))
+
+  const bestPages: MetadataRoute.Sitemap = ['longevity', 'sillage', 'value'].map(metric => ({
+    url: `${BASE}/best/${metric}`,
+    changeFrequency: 'daily',
+    priority: 0.8,
+  }))
+
+  return [...statics, ...fragrances, ...brands, ...notePages, ...dupePages, ...bestPages]
 }

@@ -1,0 +1,78 @@
+.breadcrumbBar { border-bottom: 1px solid var(--border); background: var(--bg-warm); }
+.breadcrumb { max-width: 1200px; margin: 0 auto; padding: 11px 32px; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--subtle); }
+.breadcrumb a { color: var(--subtle); transition: color .12s; }
+.breadcrumb a:hover { color: var(--text); }
+
+.main { max-width: 900px; margin: 0 auto; padding: 48px 32px 100px; }
+
+/* ── Header ── */
+.header { margin-bottom: 36px; max-width: 640px; }
+.headerIcon { color: var(--accent); margin-bottom: 12px; }
+.title {
+  font-family: var(--font-display); font-size: clamp(28px, 4vw, 40px);
+  font-weight: 400; letter-spacing: -0.4px; margin-bottom: 10px;
+}
+.title em { font-style: italic; color: var(--muted); }
+.sub { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+
+.otherBoards { display: flex; gap: 8px; }
+.boardLink {
+  font-size: 12px; font-weight: 600; padding: 7px 14px;
+  border: 1px solid var(--border-dark); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--text); transition: background .12s;
+}
+.boardLink:hover { background: var(--bg-warm); }
+
+/* ── Ranked list ── */
+.list {
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--border); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.row {
+  display: grid;
+  grid-template-columns: 36px 72px 1fr 200px;
+  gap: 18px;
+  align-items: center;
+  background: var(--bg);
+  padding: 14px 20px;
+  transition: background .12s;
+}
+.row:hover { background: var(--bg-warm); }
+
+.rank {
+  font-family: var(--font-display); font-size: 20px; font-weight: 600;
+  color: var(--subtle); text-align: center;
+}
+.row:nth-child(1) .rank,
+.row:nth-child(2) .rank,
+.row:nth-child(3) .rank { color: var(--text); }
+
+.rowImg {
+  position: relative; width: 72px; height: 72px;
+  background: var(--bg-warm); border-radius: var(--radius-sm); overflow: hidden;
+}
+.rowInfo { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rowBrand { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--subtle); }
+.rowName { font-size: 15px; font-weight: 600; color: var(--text); }
+.rowMeta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.rowRight { display: flex; flex-direction: column; gap: 4px; }
+.scoreLabel { font-size: 12px; font-weight: 700; color: var(--text); }
+.track { height: 8px; background: var(--bg-warm); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.fill { height: 100%; background: var(--text); border-radius: 4px; }
+.scoreNum { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.method {
+  margin-top: 28px;
+  font-size: 12px; color: var(--subtle); line-height: 1.7;
+  max-width: 640px;
+}
+
+@media (max-width: 640px) {
+  .main { padding: 32px 16px 80px; }
+  .breadcrumb { padding: 11px 16px; }
+  .row { grid-template-columns: 24px 52px 1fr; gap: 12px; padding: 12px 14px; }
+  .rowImg { width: 52px; height: 52px; }
+  .rowRight { grid-column: 2 / -1; }
+}

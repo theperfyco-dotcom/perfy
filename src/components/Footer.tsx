@@ -12,10 +12,12 @@ export default function Footer() {
         <div>
           <h3 className={styles.colTitle}>Discover</h3>
           <nav className={styles.links} aria-label="Discover">
-            <Link href="/trending" className={styles.link}>Trending</Link>
-            <Link href="/new"      className={styles.link}>New releases</Link>
-            <Link href="/dupes"    className={styles.link}>Dupe finder</Link>
-            <Link href="/notes"    className={styles.link}>Browse by note</Link>
+            <Link href="/trending"       className={styles.link}>Trending</Link>
+            <Link href="/dupes"          className={styles.link}>Dupe finder</Link>
+            <Link href="/notes"          className={styles.link}>Browse by note</Link>
+            <Link href="/best/longevity" className={styles.link}>Longest lasting</Link>
+            <Link href="/best/sillage"   className={styles.link}>Beast mode</Link>
+            <Link href="/best/value"     className={styles.link}>Best value</Link>
           </nav>
         </div>
         <div>

@@ -135,7 +135,7 @@ export default async function DupesPage({ searchParams }: Props) {
                   <p className={styles.suggestLabel}>Or start from what everyone&rsquo;s talking about</p>
                   <div className={styles.starterGrid}>
                     {starters.map(f => (
-                      <Link key={f.id} href={`/dupes?search=${encodeURIComponent(f.name)}`} className={styles.starterCard}>
+                      <Link key={f.id} href={`/dupes/${f.slug}`} className={styles.starterCard}>
                         <div className={styles.starterImg}>
                           {f.image_url
                             ? <Image src={f.image_url} alt={f.name} fill sizes="160px" style={{ objectFit: 'contain', padding: '10px' }} />

@@ -434,7 +434,7 @@ export default async function FragrancePage({ params }: Props) {
           <section className={styles.dupesSection} aria-labelledby="dupes-heading">
             <div className={styles.dupeSectionHead}>
               <h2 className={styles.sectionTitle} id="dupes-heading">Similar <em>fragrances</em></h2>
-              <Link href={`/dupes?search=${encodeURIComponent(fragrance.name)}`} className="section-link">
+              <Link href={`/dupes/${fragrance.slug}`} className="section-link">
                 Explore dupes <ArrowRight weight="bold" size={12} />
               </Link>
             </div>
