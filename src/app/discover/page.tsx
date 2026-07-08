@@ -269,7 +269,7 @@ export default async function DiscoverPage({ searchParams }: Props) {
             { href: '/',         label: 'Home' },
             { href: '/discover', label: 'Discover' },
             { href: '/dupes',    label: 'Dupes' },
-            { href: '/lists',    label: 'Lists' },
+            { href: '/notes',    label: 'Notes' },
             { href: '/profile',  label: 'Profile' },
           ].map(({ href, label }) => (
             <Link key={href} href={href} className="mob-nav-item">{label}</Link>

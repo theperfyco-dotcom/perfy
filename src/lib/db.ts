@@ -252,8 +252,21 @@ export async function getFragrances(opts: {
 
 export async function getAllFragranceSlugs(): Promise<string[]> {
   const supabase = await createClient()
-  const { data } = await supabase.from('fragrances').select('slug')
-  return (data ?? []).map(f => f.slug)
+  // Supabase caps each request at 1,000 rows — page through so the sitemap
+  // covers the whole catalogue.
+  const slugs: string[] = []
+  const pageSize = 1000
+  for (let from = 0; ; from += pageSize) {
+    const { data } = await supabase
+      .from('fragrances')
+      .select('slug')
+      .order('slug')
+      .range(from, from + pageSize - 1)
+    if (!data?.length) break
+    slugs.push(...data.map(f => f.slug))
+    if (data.length < pageSize) break
+  }
+  return slugs
 }
 
 export async function getBrandBySlug(slug: string): Promise<Brand | null> {
@@ -522,6 +535,62 @@ export async function getStatements(fragranceId: string, limit = 8): Promise<Sta
     is_positive:     s.is_positive     ?? null,
     created_at:      s.created_at,
   }))
+}
+
+// ── Notes (programmatic SEO pages) ────────────────────────────────────────────
+
+export interface NoteWithCount {
+  id:    string
+  name:  string
+  count: number
+}
+
+/** All notes with how many fragrances feature them — powers /notes index. */
+export async function getAllNotes(): Promise<NoteWithCount[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('notes')
+    .select('id, name, fragrance_notes(count)')
+    .order('name')
+  return (data ?? [])
+    .map(n => ({
+      id:    n.id,
+      name:  n.name,
+      count: (n.fragrance_notes as unknown as Array<{ count: number }>)?.[0]?.count ?? 0,
+    }))
+    .filter(n => n.count > 0)
+}
+
+/** Fragrances featuring a note (matched case-insensitively by name). */
+export async function getFragrancesByNote(noteName: string, limit = 48): Promise<{ note: { id: string; name: string } | null; fragrances: Fragrance[] }> {
+  const supabase = await createClient()
+
+  const { data: note } = await supabase
+    .from('notes')
+    .select('id, name')
+    .ilike('name', noteName)
+    .limit(1)
+    .single()
+  if (!note) return { note: null, fragrances: [] }
+
+  const { data: links } = await supabase
+    .from('fragrance_notes')
+    .select('fragrance_id')
+    .eq('note_id', note.id)
+    .limit(limit)
+  const ids = [...new Set((links ?? []).map(l => l.fragrance_id))]
+  if (!ids.length) return { note, fragrances: [] }
+
+  const { data } = await supabase
+    .from('fragrances')
+    .select(`id, slug, name, concentration, gender, year, description, image_url, brands(id, slug, name, country), fragrance_accords(accord_name, percentage, color_hex)`)
+    .in('id', ids)
+
+  const statsMap = await getStats(ids)
+  return {
+    note,
+    fragrances: (data ?? []).map(f => mapFragrance(f as unknown as DbFrag, statsMap.get(f.id))),
+  }
 }
 
 export interface FeedStatement extends Statement {

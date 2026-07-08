@@ -1,0 +1,39 @@
+# Perfy
+
+> Perfy (https://perfy.io) is a community fragrance database. It provides honest,
+> community-driven ratings for perfumes and colognes: longevity (how long a
+> fragrance lasts), sillage (how far it projects), gender lean, and price/value.
+> Ratings are seeded from AI analysis of real Reddit discussions (r/fragrance,
+> r/MaleFragranceAdvice and related communities) and refined by anonymous
+> community votes on the site. Perfy also identifies "dupes" — cheaper
+> fragrances with similar accord profiles to expensive ones.
+
+Perfy covers 4,000+ fragrances and 450+ brands, UK-focused pricing.
+
+## Key pages
+
+- Fragrance pages: https://perfy.io/fragrance/{slug} — scent profile (top/middle/base
+  notes, accords, fragrance family), community ratings with vote distributions,
+  Reddit review scores, season/occasion classification, and UK buying options.
+- Trending: https://perfy.io/trending — fragrances ranked by Reddit discussion volume.
+- Dupe finder: https://perfy.io/dupes — find similar-smelling cheaper alternatives,
+  matched by accord profile.
+- Browse by note: https://perfy.io/notes — every fragrance featuring a given
+  ingredient (bergamot, oud, vanilla, etc.).
+- Brands: https://perfy.io/brands
+- Monthly community awards: https://perfy.io/awards
+
+## Data & methodology
+
+- Reddit sentiment scores are derived from public posts, AI-analysed, updated daily.
+- Community votes are anonymous; one vote per attribute per session.
+- Seeded baselines are always labelled "Seeded from community data" until real
+  votes take over.
+- Note pyramids use source tier data where available; otherwise tiers are
+  estimated from ingredient volatility and labelled as estimates.
+- Some retailer links are affiliate links (disclosed at
+  https://perfy.io/affiliate-disclosure); commissions never influence scores.
+
+## Contact
+
+hello@perfy.io

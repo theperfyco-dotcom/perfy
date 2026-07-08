@@ -21,10 +21,10 @@ export default function Footer() {
         <div>
           <h3 className={styles.colTitle}>Community</h3>
           <nav className={styles.links} aria-label="Community">
-            <Link href="/feed"     className={styles.link}>Feed</Link>
-            <Link href="/creators" className={styles.link}>Creators</Link>
-            <Link href="/lists"    className={styles.link}>Curated lists</Link>
-            <Link href="/reviews"  className={styles.link}>Reviews</Link>
+            <Link href="/community" className={styles.link}>Latest takes</Link>
+            <Link href="/trending"  className={styles.link}>Most discussed</Link>
+            <Link href="/awards"    className={styles.link}>Monthly awards</Link>
+            <Link href="/brands"    className={styles.link}>Brands</Link>
           </nav>
         </div>
         <div>
@@ -38,7 +38,7 @@ export default function Footer() {
         </div>
       </div>
       <div className={styles.bottom}>
-        <span>© 2025 Perfy Ltd. Purchase links may earn commission.</span>
+        <span>© 2026 Perfy. Purchase links may earn commission.</span>
         <span>Made for fragrance lovers</span>
       </div>
     </footer>

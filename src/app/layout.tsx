@@ -21,8 +21,8 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: { default: 'Perfy — Fragrance Ratings & Discovery', template: '%s — Perfy' },
-  description: 'Community ratings, scent profiles, dupe finder and price comparison for 50,000+ fragrances.',
-  metadataBase: new URL('https://perfy.co'),
+  description: 'Community ratings, scent profiles, dupe finder and price comparison for 4,000+ fragrances — powered by real Reddit reviews.',
+  metadataBase: new URL('https://perfy.io'),
   openGraph: {
     siteName: 'Perfy',
     type: 'website',

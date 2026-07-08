@@ -24,9 +24,33 @@ export default async function HomePage() {
   const trending = fragrances.slice(0, 4)
   const palette  = fragrances.filter(f => (f.accords ?? []).length > 0).slice(0, 6)
 
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Perfy',
+      url: 'https://perfy.io',
+      description: 'Community fragrance ratings on longevity, sillage and value — powered by real Reddit reviews.',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: { '@type': 'EntryPoint', urlTemplate: 'https://perfy.io/discover?search={search_term_string}' },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Perfy',
+      url: 'https://perfy.io',
+      email: 'hello@perfy.io',
+      description: 'The community fragrance database.',
+    },
+  ]
+
   return (
     <>
       <Nav />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <main>
 
         {/* ── Hero ───────────────────────────────────── */}
@@ -181,7 +205,7 @@ export default async function HomePage() {
               <Sparkle weight="fill" size={32} className={styles.joinIcon} aria-hidden="true" />
               <h2 className={styles.joinTitle} id="join-heading">Build your scent profile</h2>
               <p className={styles.joinSub}>Rate fragrances, track your collection, follow people with great taste.</p>
-              <Link href="/join" className="btn-primary">Join free — it takes 30 seconds</Link>
+              <Link href="/trending" className="btn-primary">Start rating — no account needed</Link>
             </div>
           </div>
         </section>
@@ -195,7 +219,7 @@ export default async function HomePage() {
             { href: '/',         label: 'Home' },
             { href: '/discover', label: 'Discover' },
             { href: '/dupes',    label: 'Dupes' },
-            { href: '/lists',    label: 'Lists' },
+            { href: '/notes',    label: 'Notes' },
             { href: '/profile',  label: 'Profile' },
           ].map(({ href, label }) => (
             <Link key={href} href={href} className="mob-nav-item">{label}</Link>

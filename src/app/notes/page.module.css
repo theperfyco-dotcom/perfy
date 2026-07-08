@@ -1,0 +1,27 @@
+.main { max-width: 1200px; margin: 0 auto; padding: 48px 32px 100px; }
+
+.header { margin-bottom: 40px; max-width: 640px; }
+.title {
+  font-family: var(--font-display); font-size: clamp(28px, 4vw, 40px);
+  font-weight: 400; letter-spacing: -0.4px; margin-bottom: 10px;
+}
+.title em { font-style: italic; color: var(--muted); }
+.sub { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+.group { margin-bottom: 28px; }
+.letter {
+  font-family: var(--font-display); font-size: 20px; font-weight: 600;
+  color: var(--text); margin-bottom: 12px;
+  padding-bottom: 6px; border-bottom: 1px solid var(--border);
+}
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 2px; padding: 5px 11px;
+  transition: all .12s;
+}
+.pill:hover { color: var(--text); border-color: var(--border-dark); background: var(--bg-warm); }
+.count { font-size: 10px; color: var(--subtle); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 768px) { .main { padding: 32px 16px 80px; } }

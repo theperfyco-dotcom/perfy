@@ -32,7 +32,7 @@ export default async function BrandPage({ params }: Props) {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: brand.name,
-    url: `https://perfy.co/brand/${brand.slug}`,
+    url: `https://perfy.io/brand/${brand.slug}`,
   }
 
   return (

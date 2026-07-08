@@ -132,6 +132,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${f.name} by ${f.brand.name} — Fragrance Reviews & Ratings`,
     description: desc,
+    alternates: { canonical: `/fragrance/${slug}` },
     openGraph: {
       title: `${f.name} by ${f.brand.name}`,
       description: desc,
@@ -168,23 +169,35 @@ export default async function FragrancePage({ params }: Props) {
 
   const sortedAccords = [...(fragrance.accords ?? [])].sort((a, b) => b.percentage - a.percentage)
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: fragrance.name,
-    brand: { '@type': 'Brand', name: fragrance.brand.name },
-    description: fragrance.description ?? undefined,
-    image: fragrance.image_url ?? undefined,
-    ...(fragrance.avg_score && fragrance.rating_count ? {
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: fragrance.avg_score,
-        bestRating: 10,
-        worstRating: 1,
-        ratingCount: fragrance.rating_count,
-      },
-    } : {}),
-  }
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: fragrance.name,
+      brand: { '@type': 'Brand', name: fragrance.brand.name },
+      description: fragrance.description ?? undefined,
+      image: fragrance.image_url ?? undefined,
+      url: `https://perfy.io/fragrance/${fragrance.slug}`,
+      ...(fragrance.avg_score && fragrance.rating_count ? {
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: fragrance.avg_score,
+          bestRating: 10,
+          worstRating: 1,
+          ratingCount: fragrance.rating_count,
+        },
+      } : {}),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://perfy.io' },
+        { '@type': 'ListItem', position: 2, name: fragrance.brand.name, item: `https://perfy.io/brand/${fragrance.brand.slug}` },
+        { '@type': 'ListItem', position: 3, name: fragrance.name },
+      ],
+    },
+  ]
 
   return (
     <>
@@ -456,7 +469,7 @@ export default async function FragrancePage({ params }: Props) {
             { href: '/',         label: 'Home' },
             { href: '/discover', label: 'Discover' },
             { href: '/dupes',    label: 'Dupes' },
-            { href: '/lists',    label: 'Lists' },
+            { href: '/notes',    label: 'Notes' },
             { href: '/profile',  label: 'Profile' },
           ].map(({ href, label }) => (
             <Link key={href} href={href} className="mob-nav-item">{label}</Link>
