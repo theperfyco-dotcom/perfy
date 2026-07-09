@@ -693,6 +693,65 @@ export async function getRecentStatements(limit = 20): Promise<FeedStatement[]> 
   })
 }
 
+// ── Reddit quotes (real community voices for fragrance pages) ────────────────
+
+export interface RedditQuote {
+  id:         string
+  title:      string
+  excerpt:    string
+  subreddit:  string
+  post_id:    string
+  post_date:  string
+  upvotes:    number
+  sentiment:  number | null
+}
+
+export async function getRedditQuotes(fragranceId: string, limit = 3): Promise<RedditQuote[]> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return []
+  const supabase = createServiceClient()
+  const { data } = await supabase
+    .from('reddit_sentiments')
+    .select('id, post_title, body_text, subreddit, reddit_post_id, post_date, upvotes, sentiment_score')
+    .eq('fragrance_id', fragranceId)
+    .not('body_text', 'is', null)
+    .order('upvotes', { ascending: false })
+    .limit(limit * 2)
+  // Fetch the fragrance name so excerpts can centre on the actual mention
+  const { data: frag } = await supabase.from('fragrances').select('name').eq('id', fragranceId).single()
+  const fragName = (frag?.name ?? '').toLowerCase()
+  const nameWord = fragName.split(/\s+/).find((w: string) => w.length > 3) ?? fragName
+
+  const decodeEntities = (s: string) => s
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&nbsp;/g, ' ')
+
+  return (data ?? [])
+    .filter(r => (r.body_text ?? '').length > 100)
+    .slice(0, limit)
+    .map(r => {
+      const body = decodeEntities((r.body_text as string)).replace(/\s+/g, ' ').trim()
+      // Window the excerpt around the first fragrance mention when possible
+      const idx = nameWord ? body.toLowerCase().indexOf(nameWord) : -1
+      let cut: string
+      if (idx > 120) {
+        const start = Math.max(0, idx - 60)
+        cut = '…' + body.slice(start, start + 220).replace(/^\S*\s/, '').replace(/\s\S*$/, '') + '…'
+      } else {
+        cut = body.length > 220 ? body.slice(0, 220).replace(/\s\S*$/, '') + '…' : body
+      }
+      return {
+        id:        r.id,
+        title:     r.post_title ?? '',
+        excerpt:   cut,
+        subreddit: r.subreddit ?? 'fragrance',
+        post_id:   r.reddit_post_id,
+        post_date: r.post_date,
+        upvotes:   r.upvotes ?? 0,
+        sentiment: r.sentiment_score != null ? Number(r.sentiment_score) : null,
+      }
+    })
+}
+
 // ── Performance votes (Parfumo-style attribute voting) ───────────────────────
 
 export interface PerfStats {

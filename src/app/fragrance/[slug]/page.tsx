@@ -19,10 +19,14 @@ import YouTubeReviews from '@/components/YouTubeReviews'
 import FragranceFaq from '@/components/FragranceFaq'
 import {
   getFragranceBySlug, getDupes, getRedditStats, getClassificationStats, getStatements, getPerfStats,
-  getFragrancesByBrand,
+  getFragrancesByBrand, getRedditQuotes,
   type RedditStats, type PerfStats,
 } from '@/lib/db'
+import RedditQuotes from '@/components/RedditQuotes'
 import { classifyNotes } from '@/lib/note-tiers'
+import {
+  profilePerfBaseline, profileClassificationBaseline, type PerfBaseline,
+} from '@/lib/profile-baseline'
 import styles from './page.module.css'
 
 interface Props { params: Promise<{ slug: string }> }
@@ -58,22 +62,28 @@ function redditBaseline(avg: number, scale = 50): number[] {
   return counts
 }
 
-function mergeWithReddit(perf: PerfStats, reddit: RedditStats | null): { stats: PerfStats; hasBaseline: boolean } {
-  let hasBaseline = false
-  const seed = (counts: number[], avg: number | null | undefined) => {
+function mergeBaselines(
+  perf: PerfStats,
+  reddit: RedditStats | null,
+  profile: PerfBaseline,
+): { stats: PerfStats; usedReddit: boolean; usedProfile: boolean } {
+  let usedReddit = false
+  let usedProfile = false
+  // Precedence: real Perfy votes > Reddit-derived > scent-profile estimate.
+  // Profile baselines use a smaller synthetic sample so they read as softer.
+  const seed = (counts: number[], redditAvg: number | null | undefined, profileAvg: number | null) => {
     if (counts.some(v => v > 0)) return counts
-    if (!avg) return counts
-    hasBaseline = true
-    return redditBaseline(avg, 50)
+    if (redditAvg) { usedReddit = true; return redditBaseline(redditAvg, 50) }
+    if (profileAvg) { usedProfile = true; return redditBaseline(profileAvg, 20) }
+    return counts
   }
-  // Build stats first — seed() sets hasBaseline as a side effect
   const stats: PerfStats = {
-    longevity:   seed(perf.longevity,   reddit?.avg_longevity),
-    sillage:     seed(perf.sillage,     reddit?.avg_sillage),
-    gender:      seed(perf.gender,      reddit?.avg_gender),
-    price_value: seed(perf.price_value, reddit?.avg_price_value),
+    longevity:   seed(perf.longevity,   reddit?.avg_longevity,   profile.longevity),
+    sillage:     seed(perf.sillage,     reddit?.avg_sillage,     profile.sillage),
+    gender:      seed(perf.gender,      reddit?.avg_gender,      profile.gender),
+    price_value: seed(perf.price_value, reddit?.avg_price_value, profile.price_value),
   }
-  return { stats, hasBaseline }
+  return { stats, usedReddit, usedProfile }
 }
 
 // ── Distribution bar display ─────────────────────────────────────────────────
@@ -148,18 +158,44 @@ export default async function FragrancePage({ params }: Props) {
   const fragrance = await getFragranceBySlug(slug)
   if (!fragrance) notFound()
 
-  const [dupes, redditStats, classStats, statements, perfStats, brandMates] = await Promise.all([
+  const [dupes, redditStats, classStats, statements, perfStats, brandMates, redditQuotes] = await Promise.all([
     getDupes(fragrance.id, 6),
     getRedditStats(fragrance.id),
     getClassificationStats(fragrance.id),
     getStatements(fragrance.id, 8),
     getPerfStats(fragrance.id),
     getFragrancesByBrand(fragrance.brand.slug, 8),
+    getRedditQuotes(fragrance.id, 3),
   ])
 
   const moreFromBrand = brandMates.filter(f => f.id !== fragrance.id).slice(0, 6)
 
-  const { stats: mergedPerfStats, hasBaseline } = mergeWithReddit(perfStats, redditStats)
+  const { stats: mergedPerfStats, usedReddit, usedProfile } = mergeBaselines(
+    perfStats, redditStats, profilePerfBaseline(fragrance),
+  )
+  const baselineNote = usedReddit && usedProfile
+    ? 'Seeded from community data and scent-profile estimates.'
+    : usedReddit
+      ? 'Seeded from community data.'
+      : usedProfile
+        ? 'Starting estimates from concentration and scent profile — votes replace them.'
+        : null
+
+  // Classification: dimensions with no votes fall back to scent-profile estimates
+  const classBaseline = profileClassificationBaseline(fragrance)
+  const estimatedDims: Array<'season' | 'occasion' | 'style'> = []
+  let mergedClassStats = classStats
+  if (classBaseline) {
+    const empty = { season_votes: 0, occasion_votes: 0, style_votes: 0 }
+    const base = classStats ?? {
+      ...empty,
+      season: classBaseline.season, occasion: classBaseline.occasion, style: classBaseline.style,
+    }
+    mergedClassStats = { ...base }
+    if (base.season_votes === 0)   { mergedClassStats.season = classBaseline.season;     estimatedDims.push('season') }
+    if (base.occasion_votes === 0) { mergedClassStats.occasion = classBaseline.occasion; estimatedDims.push('occasion') }
+    if (base.style_votes === 0)    { mergedClassStats.style = classBaseline.style;       estimatedDims.push('style') }
+  }
 
   const allNotes = fragrance.flat_notes?.length
     ? fragrance.flat_notes
@@ -394,16 +430,26 @@ export default async function FragrancePage({ params }: Props) {
           <h2 className={styles.sectionTitle} id="perf-heading">Community <em>ratings</em></h2>
           <p className={styles.voteText}>
             Rate each attribute — no account needed.
-            {hasBaseline && <span className={styles.baselineNote}> Seeded from community data.</span>}
+            {baselineNote && <span className={styles.baselineNote}> {baselineNote}</span>}
           </p>
           <PerformanceRating fragranceId={fragrance.id} initialStats={mergedPerfStats} />
+          <RedditQuotes quotes={redditQuotes} />
         </section>
 
         {/* ── Season / occasion / style classification ── */}
         <section className={styles.classSection} aria-labelledby="class-heading">
           <h2 className={styles.sectionTitle} id="class-heading">Community <em>classification</em></h2>
-          <p className={styles.voteText}>When do people wear it? How do they describe it?</p>
-          <ClassificationVoting fragranceId={fragrance.id} initialStats={classStats} />
+          <p className={styles.voteText}>
+            When do people wear it? How do they describe it?
+            {estimatedDims.length > 0 && (
+              <span className={styles.baselineNote}> Starting estimates from the scent profile — votes replace them.</span>
+            )}
+          </p>
+          <ClassificationVoting
+            fragranceId={fragrance.id}
+            initialStats={mergedClassStats}
+            estimatedDims={estimatedDims}
+          />
         </section>
 
         {/* ── Community statements ─────────────────── */}

@@ -25,6 +25,8 @@ const STYLE_ICON: Record<Style, Icon>       = { fresh: Drop, elegant: Sparkle, c
 interface Props {
   fragranceId:   string
   initialStats:  ClassificationStats | null
+  /** Dimensions whose percentages are scent-profile estimates, not votes */
+  estimatedDims?: Array<'season' | 'occasion' | 'style'>
 }
 
 interface VotedState {
@@ -33,10 +35,16 @@ interface VotedState {
   style?:    Style
 }
 
-export default function ClassificationVoting({ fragranceId, initialStats }: Props) {
+export default function ClassificationVoting({ fragranceId, initialStats, estimatedDims = [] }: Props) {
   const [stats, setStats]   = useState(initialStats)
   const [voted, setVoted]   = useState<VotedState>({})
   const [pending, setPending] = useState<Set<string>>(new Set())
+
+  function voteLabel(dim: 'season' | 'occasion' | 'style'): string {
+    const n = votes(dim)
+    if (n === 0 && estimatedDims.includes(dim)) return 'estimated'
+    return `${n} vote${n === 1 ? '' : 's'}`
+  }
 
   async function vote(dim: 'season' | 'occasion' | 'style', value: string) {
     const key = `${dim}_${value}`
@@ -96,7 +104,7 @@ export default function ClassificationVoting({ fragranceId, initialStats }: Prop
   return (
     <div className={styles.root}>
       <div className={styles.group}>
-        <div className={styles.groupLabel}>Season <span className={styles.voteCount}>{votes('season')} votes</span></div>
+        <div className={styles.groupLabel}>Season <span className={styles.voteCount}>{voteLabel('season')}</span></div>
         <div className={styles.chips}>
           {SEASONS.map(s => {
             const p = pct('season', s)
@@ -120,7 +128,7 @@ export default function ClassificationVoting({ fragranceId, initialStats }: Prop
       </div>
 
       <div className={styles.group}>
-        <div className={styles.groupLabel}>Occasion <span className={styles.voteCount}>{votes('occasion')} votes</span></div>
+        <div className={styles.groupLabel}>Occasion <span className={styles.voteCount}>{voteLabel('occasion')}</span></div>
         <div className={styles.chips}>
           {OCCASIONS.map(o => {
             const p = pct('occasion', o)
@@ -144,7 +152,7 @@ export default function ClassificationVoting({ fragranceId, initialStats }: Prop
       </div>
 
       <div className={styles.group}>
-        <div className={styles.groupLabel}>Style <span className={styles.voteCount}>{votes('style')} votes</span></div>
+        <div className={styles.groupLabel}>Style <span className={styles.voteCount}>{voteLabel('style')}</span></div>
         <div className={styles.chips}>
           {STYLES.map(s => {
             const p = pct('style', s)
