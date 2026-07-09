@@ -84,6 +84,9 @@ async function main() {
       .single()
     if (!f) continue
 
+    // Skip fragrances already carrying regenerated (non-boilerplate) copy
+    if (f.description && !f.description.includes('Discover more details')) continue
+
     const brand = (f.brands as unknown as { name: string } | null)?.name ?? ''
     const accords = ((f.fragrance_accords ?? []) as Array<{ accord_name: string; percentage: number }>)
       .sort((a, b) => b.percentage - a.percentage).slice(0, 4).map(a => a.accord_name)
