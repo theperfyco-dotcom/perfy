@@ -54,7 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  const bestPages: MetadataRoute.Sitemap = ['longevity', 'sillage', 'value'].map(metric => ({
+  const bestPages: MetadataRoute.Sitemap = ['longevity', 'sillage', 'value', 'summer', 'winter'].map(metric => ({
     url: `${BASE}/best/${metric}`,
     changeFrequency: 'daily',
     priority: 0.8,

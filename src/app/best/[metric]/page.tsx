@@ -2,17 +2,18 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { CaretRight, Hourglass, Wind, Tag } from '@phosphor-icons/react/dist/ssr'
+import { CaretRight, Hourglass, Wind, Tag, Sun, Snowflake } from '@phosphor-icons/react/dist/ssr'
 import type { Icon } from '@phosphor-icons/react'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
-import { getTopByRedditAttribute, type RedditAttribute } from '@/lib/db'
+import { getTopByRedditAttribute, getTopBySeason, type RedditAttribute } from '@/lib/db'
 import styles from './page.module.css'
 
 export const revalidate = 43200
 
 const METRICS: Record<string, {
-  attr: RedditAttribute
+  attr?: RedditAttribute
+  season?: 'summer' | 'winter'
   Icon: Icon
   title: string
   titleEm: string
@@ -21,6 +22,26 @@ const METRICS: Record<string, {
   scaleLabels: string[]
   valueLabel: string
 }> = {
+  summer: {
+    season: 'summer',
+    Icon: Sun,
+    title: 'Best summer',
+    titleEm: 'fragrances',
+    metaTitle: 'The Best Summer Fragrances — Fresh & Citrus Scents Ranked',
+    description: 'The freshest citrus, aquatic and green fragrances for hot weather — ranked by community score and scent profile.',
+    scaleLabels: ['Faint', 'Light', 'Fresh', 'Very fresh', 'Ultra fresh'],
+    valueLabel: 'summer fit',
+  },
+  winter: {
+    season: 'winter',
+    Icon: Snowflake,
+    title: 'Best winter',
+    titleEm: 'fragrances',
+    metaTitle: 'The Best Winter Fragrances — Warm Amber & Spice Ranked',
+    description: 'Warm ambers, spices, ouds and leathers built for cold weather — ranked by community score and scent profile.',
+    scaleLabels: ['Mild', 'Warm', 'Rich', 'Very rich', 'Opulent'],
+    valueLabel: 'winter fit',
+  },
   longevity: {
     attr: 'avg_longevity',
     Icon: Hourglass,
@@ -75,7 +96,9 @@ export default async function BestPage({ params }: Props) {
   const m = METRICS[metric]
   if (!m) notFound()
 
-  const entries = await getTopByRedditAttribute(m.attr, 15)
+  const entries = m.season
+    ? await getTopBySeason(m.season, 15)
+    : await getTopByRedditAttribute(m.attr!, 15)
   if (!entries.length) notFound()
 
   const jsonLd = [

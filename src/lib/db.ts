@@ -608,6 +608,72 @@ export async function getTopByRedditAttribute(attr: RedditAttribute, limit = 15)
     .filter((e): e is LeaderboardEntry => e !== null)
 }
 
+const SEASON_ACCORDS: Record<'summer' | 'winter', string[]> = {
+  summer: ['Citrus', 'Fresh', 'Green', 'Aromatic'],
+  winter: ['Amber', 'Spicy', 'Oud', 'Leather', 'Smoky'],
+}
+
+/** Fragrances suited to a season — seasonal accord strength, ranked by
+ *  community score where Reddit data exists, accord strength otherwise. */
+export async function getTopBySeason(season: 'summer' | 'winter', limit = 15): Promise<LeaderboardEntry[]> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return []
+  const supabase = createServiceClient()
+
+  const { data: accordRows } = await supabase
+    .from('fragrance_accords')
+    .select('fragrance_id, percentage')
+    .in('accord_name', SEASON_ACCORDS[season])
+    .gte('percentage', 25)
+    .order('percentage', { ascending: false })
+    .limit(600)
+
+  const strength = new Map<string, number>()
+  for (const r of accordRows ?? []) {
+    strength.set(r.fragrance_id, Math.max(strength.get(r.fragrance_id) ?? 0, r.percentage))
+  }
+  const ids = [...strength.keys()]
+  if (!ids.length) return []
+
+  // Reddit stats for ranking (chunked — long .in() lists overflow the URL limit)
+  const redditChunks = await Promise.all(
+    Array.from({ length: Math.ceil(ids.length / 100) }, (_, i) =>
+      supabase
+        .from('fragrance_reddit_stats')
+        .select('fragrance_id, mention_count, avg_score')
+        .in('fragrance_id', ids.slice(i * 100, i * 100 + 100))
+    )
+  )
+  const redditMap = new Map(redditChunks.flatMap(c => c.data ?? []).map(r => [r.fragrance_id, r]))
+
+  const nn = (v: unknown) => v !== null && v !== undefined ? parseFloat(String(v)) : null
+  const rankScore = (id: string) => {
+    const r = redditMap.get(id)
+    const reddit = r ? (nn(r.avg_score) ?? 0) * 10 + Math.min(20, (r.mention_count ?? 0)) : 0
+    return reddit + (strength.get(id) ?? 0) / 10
+  }
+  const topIds = ids.sort((a, b) => rankScore(b) - rankScore(a)).slice(0, limit)
+
+  const { data: frags } = await supabase
+    .from('fragrances')
+    .select(`id, slug, name, concentration, gender, year, description, image_url, brands(id, slug, name, country), fragrance_accords(accord_name, percentage, color_hex)`)
+    .in('id', topIds)
+  const fragMap = new Map((frags ?? []).map(f => [f.id, mapFragrance(f as unknown as DbFrag)]))
+
+  return topIds
+    .map(id => {
+      const fragrance = fragMap.get(id)
+      if (!fragrance) return null
+      const r = redditMap.get(id)
+      return {
+        fragrance,
+        value:         (strength.get(id) ?? 0) / 20, // accord strength on a 0–5 scale
+        mention_count: r?.mention_count ?? 0,
+        reddit_score:  r ? nn(r.avg_score) : null,
+      }
+    })
+    .filter((e): e is LeaderboardEntry => e !== null)
+}
+
 // ── Notes (programmatic SEO pages) ────────────────────────────────────────────
 
 export interface NoteWithCount {

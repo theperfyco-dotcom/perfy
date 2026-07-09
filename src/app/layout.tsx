@@ -3,6 +3,7 @@ import { Cormorant_Garamond, DM_Sans } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/providers/AuthProvider'
 import AuthModal from '@/components/AuthModal'
+import PageView from '@/components/PageView'
 import './globals.css'
 
 const cormorant = Cormorant_Garamond({
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </AuthProvider>
         <Analytics />
+        <PageView />
       </body>
     </html>
   )
