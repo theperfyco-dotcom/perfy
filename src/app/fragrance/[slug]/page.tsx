@@ -216,7 +216,9 @@ export default async function FragrancePage({ params }: Props) {
       '@type': 'Product',
       name: fragrance.name,
       brand: { '@type': 'Brand', name: fragrance.brand.name },
-      description: fragrance.description ?? undefined,
+      description: fragrance.description && !fragrance.description.includes('Discover more details')
+        ? fragrance.description
+        : undefined,
       image: fragrance.image_url ?? undefined,
       url: `https://perfy.io/fragrance/${fragrance.slug}`,
       ...(fragrance.avg_score && fragrance.rating_count ? {
@@ -302,6 +304,11 @@ export default async function FragrancePage({ params }: Props) {
               ].filter(Boolean) as string[]
               return parts.length > 0 ? <p className={styles.variant}>{parts.join(' · ')}</p> : null
             })()}
+
+            {/* Editorial intro — only quality copy, never scraped boilerplate */}
+            {fragrance.description && !fragrance.description.includes('Discover more details') && (
+              <p className={styles.intro} itemProp="description">{fragrance.description}</p>
+            )}
 
             {/* ── Community score — key signal, high up.
                  Perfy ratings first; Reddit sentiment as launch-phase fallback ── */}

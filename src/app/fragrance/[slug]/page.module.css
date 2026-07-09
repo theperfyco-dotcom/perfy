@@ -33,6 +33,15 @@
 }
 .variant { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
 
+/* Editorial intro paragraph */
+.intro {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 560px;
+  margin: -8px 0 20px;
+}
+
 /* ── Scent profile block (family pills + accords + notes) ── */
 .scentIdentity {
   margin-bottom: 24px;
