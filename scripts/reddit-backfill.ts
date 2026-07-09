@@ -10,6 +10,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { config } from 'dotenv'
+import { readFileSync, writeFileSync } from 'fs'
 
 config({ path: '.env.local' })
 
@@ -26,6 +27,16 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
+
+// Fragrances processed in previous runs (including zero-post ones, which never
+// appear in fragrance_reddit_stats) — skip them across runs.
+const DONE_FILE = 'scripts/.reddit-backfill-done.json'
+function loadDone(): Set<string> {
+  try { return new Set(JSON.parse(readFileSync(DONE_FILE, 'utf8')) as string[]) } catch { return new Set() }
+}
+function saveDone(ids: Set<string>) {
+  try { writeFileSync(DONE_FILE, JSON.stringify([...ids])) } catch { /* noop */ }
+}
 
 // Brands with real Reddit discussion volume — designer staples + niche darlings
 const PRIORITY_BRANDS = [
@@ -52,7 +63,8 @@ async function main() {
   console.log(`${priorityBrandIds.length} priority brands matched`)
 
   const { data: analysed } = await supabase.from('fragrance_reddit_stats').select('fragrance_id')
-  const done = new Set((analysed ?? []).map(r => r.fragrance_id))
+  const done = loadDone()
+  for (const r of analysed ?? []) done.add(r.fragrance_id)
 
   const candidates: Array<{ id: string; name: string }> = []
   for (let i = 0; i < priorityBrandIds.length; i += 40) {
@@ -83,6 +95,8 @@ async function main() {
       console.log(`FETCH ERR ${(e as Error).message}`)
       errors++
     }
+    done.add(f.id)
+    saveDone(done)
     await sleep(4000)
   }
   console.log(`\nDone: ${inserted} sentiments inserted, ${errors} errors`)
